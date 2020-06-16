@@ -37,25 +37,37 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("PTM Racing"),
-      ),
-      body: Center(
-          child: GestureDetector(
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            color: Colors.grey.shade300,
-          ),
-          padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-          child: Text("ดูรายการ"),
+        appBar: AppBar(
+          title: Text("PTM Racing"),
         ),
-        onTap: () => Navigator.push(context,
-            MaterialPageRoute(builder: (context) => AddProductScreen())),
-      )),
-    );
+        body: Column(
+          children: <Widget>[
+            Container(
+              child: Image.asset('assets/images/ptm.jpg'),
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                GestureDetector(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(5),
+                      color: Colors.grey.shade300,
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                    child: Text("เข้าสู่ระบบ"),
+                  ),
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => AddProductScreen())),
+                ),
+              ],
+            )
+          ],
+        ));
   }
 }
-
-
-
