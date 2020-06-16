@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutterptm/Utils/images.dart';
 import 'package:flutterptm/model/model_product.dart';
 import 'dart:convert';
@@ -41,10 +43,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
           context: context,
           builder: (_) {
             return AlertDialog(
-              title: Text("กรุณารอสักครู่.."),
-              contentPadding: EdgeInsets.all(0),
-              content: JumpingDotsProgressIndicator(
-                fontSize: 30.0,
+              title: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    "กรุณารอสักครู่",
+                    style: TextStyle(fontSize: 20),
+                  ),
+                  JumpingDotsProgressIndicator(
+                    fontSize: 18.0,
+                  ),
+                ],
               ),
             );
           });
@@ -57,7 +66,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     }
     if (sBarcode != null) {
       mdProduct.add(
-          ModelProduct(sBarcode, sBarcode, 'โช๊คอัพ', 'อะไหล่', sBase64Img));
+          ModelProduct(sBarcode, sBarcode, '', '', sBase64Img));
 
       setState(() {});
     }
@@ -67,7 +76,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     var picture = await picker.getImage(
         source: ImageSource.camera, maxHeight: 640, maxWidth: 480);
     ImageResize.Image imageFile =
-        ImageResize.decodeJpg(File(picture.path).readAsBytesSync());
+    ImageResize.decodeJpg(File(picture.path).readAsBytesSync());
     ImageResize.Image thumbnail = ImageResize.copyResize(imageFile, width: 300);
     sBase64Img = base64Encode(ImageResize.encodePng(thumbnail));
 //    imageProduct = ImagesConverter.imageFromBase64String(sBase64Img);
@@ -120,8 +129,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
     return new GridView.builder(
       physics: BouncingScrollPhysics(),
       itemCount: mdProduct.length,
+      shrinkWrap: true,
       gridDelegate:
-          new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+      new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
       itemBuilder: (context, i) {
         final index = i;
 
@@ -141,11 +151,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   Widget _buildRow(ModelProduct pair, int index) {
-    return new GestureDetector(
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-        elevation: 5.0,
-        color: Colors.white,
+    return Card(
+      elevation: 5.0,
+      color: Colors.white,
+      child: new GestureDetector(
         child: new Column(
           children: <Widget>[
             Expanded(
@@ -154,8 +163,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 children: <Widget>[
                   Expanded(
                     child: Container(
+                        padding: EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5)),
                         child:
-                            ImagesConverter.imageFromBase64String(pair.sImg64)),
+                        ImagesConverter.imageFromBase64String(pair.sImg64)),
                   ),
                 ],
               ),
