@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterptm/AddProductScreen.dart';
 
@@ -9,6 +10,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    Color redColor = Colors.red;
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',
@@ -22,7 +24,14 @@ class MyApp extends StatelessWidget {
           // or simply save your changes to "hot reload" in a Flutter IDE).
           // Notice that the counter didn't reset back to zero; the application
           // is not restarted.
-          primarySwatch: Colors.red,
+          buttonTheme: ButtonThemeData(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            buttonColor: redColor,
+            splashColor: Colors.red[300],
+          ),
+          primarySwatch: redColor,
         ),
         home: HomePage());
   }
@@ -34,40 +43,46 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  Color whiteColor = Colors.white;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text("PTM Racing"),
-        ),
-        body: Column(
-          children: <Widget>[
-            Container(
-              child: Image.asset('assets/images/ptm.jpg'),
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                GestureDetector(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(5),
-                      color: Colors.grey.shade300,
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                    child: Text("เข้าสู่ระบบ"),
-                  ),
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => AddProductScreen())),
+    return SafeArea(
+        child: Scaffold(
+            body: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                    colors: [Colors.red[500],Colors.red[100]],
+                  begin: Alignment.topRight,
+                    end: Alignment.center,
                 ),
-              ],
-            )
-          ],
-        ));
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Container(
+                    child: Image.asset('assets/images/logo.png',filterQuality: FilterQuality.high,),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      RaisedButton(
+                        child: Text("เข้าสู่ระบบ",
+                        style: TextStyle(color: whiteColor,fontSize: 18,fontWeight: FontWeight.bold,),
+                        ),
+                        padding: EdgeInsets.only(top: 10,bottom: 10,left: 20,right: 20),
+                        onPressed: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => AddProductScreen()));
+                        },
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+        ),
+    );
   }
 }
