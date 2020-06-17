@@ -27,7 +27,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   String sBarcode = '';
   String sBase64Img = '';
   final picker = ImagePicker();
-  DateFormat datetimeFormat = DateFormat('dd-MM-yyyy HH:mm:ss');
+  DateFormat datetimeFormat = DateFormat('dd-MM-yyyy HH:mm');
   DateTime currentDt = DateTime.now();
   DataRepository repository = DataRepository();
 
@@ -220,6 +220,22 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     Text(
                       pair.sBarcode,
                       overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: new Container(
+                padding: EdgeInsets.only(left: 5),
+                child: new Row(
+                  children: <Widget>[
+                    Text(
+                      pair.sDate + ' น.',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12),
                     ),
                   ],
                 ),
