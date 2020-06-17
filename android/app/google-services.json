@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "131239631999",
+    "firebase_url": "https://ptmracing-53ee9.firebaseio.com",
+    "project_id": "ptmracing-53ee9",
+    "storage_bucket": "ptmracing-53ee9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:131239631999:android:8b97f14bc982cb3764734a",
+        "android_client_info": {
+          "package_name": "com.example.flutterptm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "131239631999-66hbb622bqm47rgpk1ckrgsrvqs4g349.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.flutterptm",
+            "certificate_hash": "2dcada568f96b1fc67904a7b902b43ef18fc854c"
+          }
+        },
+        {
+          "client_id": "131239631999-t4thm8bqglcfhsskvf33oiohbqmsrjp6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBP2XxJrL-ZjRUyhug7Z1_yWNDurvr7mxo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "131239631999-t4thm8bqglcfhsskvf33oiohbqmsrjp6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
@@ -12,6 +13,8 @@ import 'package:image/image.dart' as ImageResize;
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:progress_indicators/progress_indicators.dart';
+import 'package:intl/intl.dart';
+import 'package:flutterptm/DataRepository.dart';
 
 class AddProductScreen extends StatefulWidget {
   @override
@@ -24,6 +27,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
   String sBarcode = '';
   String sBase64Img = '';
   final picker = ImagePicker();
+  DateFormat datetimeFormat = DateFormat('dd-MM-yyyy HH:mm:ss');
+  DateTime currentDt = DateTime.now();
+  DataRepository repository = DataRepository();
 
   @override
   void initState() {
@@ -33,7 +39,26 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   setDataListView() {
     // สำหรับดึงข้อมูล firebase
-    setState(() {});
+    mdProduct.clear();
+    Firestore.instance.collection("product").getDocuments().then((value) {
+      int iRet = value.documents.length;
+      value.documents.forEach((element) {
+        String sBarcode = element.data['barcode'];
+        String sDate = element.data['date'];
+        String sCode = element.data['code'];
+        String sName = element.data['name'];
+        String sGroup = element.data['group'];
+        String sImg64 = element.data['image'];
+        mdProduct.add(ModelProduct(sBarcode, sDate: sDate,
+            sCode: sCode,
+            sName: sName,
+            sGroup: sGroup,
+            sImg64: sImg64));
+      });
+      if (iRet > 0) {
+        setState(() {});
+      }
+    });
   }
 
   processCreateProduct() async {
@@ -61,14 +86,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
     await _imageTakePicture();
 
     if (sBase64Img != null && sBase64Img != '') {
-      Navigator.pop(context);
       await scan();
-    }
-    if (sBarcode != null) {
-      mdProduct.add(
-          ModelProduct(sBarcode, sBarcode, '', '', sBase64Img));
+      Navigator.pop(context);
 
-      setState(() {});
+      if (sBarcode != null) {
+        String sDate = datetimeFormat.format(currentDt);
+//      mdProduct.add(ModelProduct(sBarcode,sDate: sDate,sCode: sBarcode,sName: 'ไม่ระบุ',sGroup: 'ไม่ระบุ',sImg64: sBase64Img));
+        await repository.addProduct(ModelProduct(sBarcode, sDate: sDate,
+            sCode: sBarcode,
+            sName: 'ไม่ระบุ',
+            sGroup: 'ไม่ระบุ',
+            sImg64: sBase64Img));
+        setDataListView();
+      }
     }
   }
 
@@ -86,6 +116,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Future scan() async {
     try {
       String barcode = await BarcodeScanner.scan();
+
       setState(() {
         if (barcode != null) {
           sBarcode = barcode;
@@ -116,7 +147,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
       appBar: AppBar(
         title: Text("รายการสินค้า"),
       ),
-      body: Container(child: _buildSuggestions()),
+      body: Container(child:
+      _buildSuggestions()
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => processCreateProduct(),
         tooltip: 'Scan',
@@ -126,12 +159,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   Widget _buildSuggestions() {
-    return new GridView.builder(
+    return mdProduct.length > 0
+        ? new GridView.builder(
       physics: BouncingScrollPhysics(),
       itemCount: mdProduct.length,
       shrinkWrap: true,
-      gridDelegate:
-      new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+      gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2),
       itemBuilder: (context, i) {
         final index = i;
 
@@ -147,6 +181,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
           return _buildRow(mdProduct[index], index);
         }
       },
+    )
+        : Center(
+      child: Container(
+        child: Text("ไม่มีรายการ"),
+      ),
     );
   }
 
@@ -179,7 +218,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 child: new Row(
                   children: <Widget>[
                     Text(
-                      pair.getBarcode,
+                      pair.sBarcode,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],

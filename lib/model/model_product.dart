@@ -1,37 +1,73 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class ModelProduct {
   String sName;
+  String sDate;
   String sCode;
   String sBarcode;
   String sGroup;
   String sImg64;
+  DocumentReference reference;
 
-  ModelProduct(this.sBarcode, this.sCode, this.sName, this.sGroup, this.sImg64);
+  ModelProduct(this.sBarcode,
+      {this.sDate,
+      this.sCode,
+      this.sName,
+      this.sGroup,
+      this.sImg64,
+      this.reference});
 
-  static bool get isEmpty => null;
+  factory ModelProduct.fromJson(Map<dynamic, dynamic> json) =>
+      _ModelProductFromJson(json);
 
-  String get getBarcode => sBarcode;
+  Map<String, dynamic> toJson() => _ModelProductToJson(this);
 
-  String get getCode => sCode;
+  @override
+  String toString() => "Barcode<$sBarcode>";
 
-  String get getName => sName;
-
-  String get getGroup => sGroup;
-
-  String get getsImg64 => sImg64;
-
-  set setBarcode(String sBarcode) {
-    this.sBarcode = sBarcode;
-  }
-
-  set setCode(String sCode) {
-    this.sCode = sCode;
-  }
-
-  set setName(String sName) {
-    this.sName = sName;
-  }
-
-  set setGroup(String sGroup) {
-    this.sGroup = sGroup;
-  }
+//  String get getBarcode => sBarcode;
+//
+//  String get getCode => sCode;
+//
+//  String get getName => sName;
+//
+//  String get getGroup => sGroup;
+//
+//  String get getsImg64 => sImg64;
+//
+//  set setBarcode(String sBarcode) {
+//    this.sBarcode = sBarcode;
+//  }
+//
+//  set setCode(String sCode) {
+//    this.sCode = sCode;
+//  }
+//
+//  set setName(String sName) {
+//    this.sName = sName;
+//  }
+//
+//  set setGroup(String sGroup) {
+//    this.sGroup = sGroup;
+//  }
 }
+
+ModelProduct _ModelProductFromJson(Map<dynamic, dynamic> json) {
+  return ModelProduct(json['barcode'] as String,
+      sDate: json['date'] as String,
+      sCode: json['code'] as String,
+      sName: json['name'] as String,
+      sGroup: json['group'] as String,
+      sImg64: json['image'] as String);
+}
+
+//2
+Map<String, dynamic> _ModelProductToJson(ModelProduct instance) =>
+    <String, dynamic>{
+      'barcode': instance.sBarcode,
+      'date': instance.sDate,
+      'code': instance.sCode,
+      'name': instance.sName,
+      'group': instance.sGroup,
+      'image': instance.sImg64
+    };
