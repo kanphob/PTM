@@ -1,4 +1,4 @@
-package com.example.flutterptm;
+package com.example.PTMRacing;
 
 import io.flutter.embedding.android.FlutterActivity;
 

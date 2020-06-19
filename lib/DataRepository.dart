@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterptm/model/model_product.dart';
+import 'package:PTMRacing/model/model_product.dart';
 
 class DataRepository {
   // 1

@@ -10,7 +10,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:131239631999:android:8b97f14bc982cb3764734a",
         "android_client_info": {
-          "package_name": "com.example.flutterptm"
+          "package_name": "com.example.PTMRacing"
         }
       },
       "oauth_client": [
@@ -18,7 +18,7 @@
           "client_id": "131239631999-66hbb622bqm47rgpk1ckrgsrvqs4g349.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.flutterptm",
+            "package_name": "com.example.PTMRacing",
             "certificate_hash": "2dcada568f96b1fc67904a7b902b43ef18fc854c"
           }
         },

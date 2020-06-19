@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterptm/AddProductScreen.dart';
+import 'package:PTMRacing/AddProductScreen.dart';
 
 void main() {
   runApp(MyApp());

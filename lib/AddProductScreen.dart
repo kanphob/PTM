@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
-import 'package:flutterptm/Utils/images.dart';
-import 'package:flutterptm/model/model_product.dart';
+import 'package:PTMRacing/Utils/images.dart';
+import 'package:PTMRacing/model/model_product.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:barcode_scan/barcode_scan.dart';
@@ -14,7 +14,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:intl/intl.dart';
-import 'package:flutterptm/DataRepository.dart';
+import 'package:PTMRacing/DataRepository.dart';
 
 class AddProductScreen extends StatefulWidget {
   String sUsername;
@@ -106,7 +106,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
         String sUsername = element.data['username'];
         String sDocID = element.documentID;
         DateTime dtDocDate = DateTime.parse(sDate);
-        String dateFormat = datetimeFormat.format(dtDocDate);
+        String dateFormat = datetimeFormat.format(DateTime(dtDocDate.year + 543,
+            dtDocDate.month, dtDocDate.day, dtDocDate.hour, dtDocDate.minute));
         mdProduct.add(ModelProduct(
           sBarcode,
           sDate: dateFormat,
@@ -174,7 +175,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     var picture = await picker.getImage(
         source: ImageSource.camera, maxHeight: 800, maxWidth: 600);
     ImageResize.Image imageFile =
-    ImageResize.decodeJpg(File(picture.path).readAsBytesSync());
+        ImageResize.decodeJpg(File(picture.path).readAsBytesSync());
     ImageResize.Image thumbnail = ImageResize.copyResize(imageFile, width: 300);
     sBase64Img = base64Encode(ImageResize.encodePng(thumbnail));
 //    imageProduct = ImagesConverter.imageFromBase64String(sBase64Img);
