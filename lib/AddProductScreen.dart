@@ -17,6 +17,10 @@ import 'package:intl/intl.dart';
 import 'package:flutterptm/DataRepository.dart';
 
 class AddProductScreen extends StatefulWidget {
+  String sUsername;
+
+  AddProductScreen({Key key, this.sUsername}) : super(key: key);
+
   @override
   _AddProductScreenState createState() => _AddProductScreenState();
 }
@@ -28,19 +32,69 @@ class _AddProductScreenState extends State<AddProductScreen> {
   String sBase64Img = '';
   final picker = ImagePicker();
   DateFormat datetimeFormat = DateFormat('dd-MM-yyyy HH:mm');
+  DateFormat timeFormat = DateFormat('HH:mm');
   DateTime currentDt = DateTime.now();
   DataRepository repository = DataRepository();
+  String sFullDate = '';
+  String sUsername = '';
+
+  String getMonthName(final int month) {
+    switch (month) {
+      case 1:
+        return "มกราคม";
+      case 2:
+        return "กุมภาพันธ์";
+      case 3:
+        return "มีนาคม";
+      case 4:
+        return "เมษายน";
+      case 5:
+        return "พฤษภาคม";
+      case 6:
+        return "มิถุนายน";
+      case 7:
+        return "กรกฎาคม";
+      case 8:
+        return "สิงหาคม";
+      case 9:
+        return "กันยายน";
+      case 10:
+        return "ตุลาคม";
+      case 11:
+        return "พฤศจิกายน";
+      case 12:
+        return "ธันวาคม";
+      default:
+        return "Unknown";
+    }
+  }
 
   @override
   void initState() {
+    if (this.widget.sUsername != null) sUsername = this.widget.sUsername;
     setDataListView();
     super.initState();
   }
 
-  setDataListView() {
+  deleteFromDB(String sDocID) async {
+    await Firestore.instance.collection("product").document(sDocID).delete();
+    setDataListView();
+    Navigator.pop(context, 'deleted');
+  }
+
+  setDataListView() async {
+    sFullDate = currentDt.day.toString() +
+        " " +
+        getMonthName(currentDt.month) +
+        " " +
+        (currentDt.year + 543).toString();
     // สำหรับดึงข้อมูล firebase
     mdProduct.clear();
-    Firestore.instance.collection("product").getDocuments().then((value) {
+    await Firestore.instance
+        .collection("product")
+        .orderBy("date", descending: true)
+        .getDocuments()
+        .then((value) {
       int iRet = value.documents.length;
       value.documents.forEach((element) {
         String sBarcode = element.data['barcode'];
@@ -49,11 +103,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
         String sName = element.data['name'];
         String sGroup = element.data['group'];
         String sImg64 = element.data['image'];
-        mdProduct.add(ModelProduct(sBarcode, sDate: sDate,
-            sCode: sCode,
-            sName: sName,
-            sGroup: sGroup,
-            sImg64: sImg64));
+        String sUsername = element.data['username'];
+        String sDocID = element.documentID;
+        DateTime dtDocDate = DateTime.parse(sDate);
+        String dateFormat = datetimeFormat.format(dtDocDate);
+        mdProduct.add(ModelProduct(
+          sBarcode,
+          sDate: dateFormat,
+          sCode: sCode,
+          sName: sName,
+          sGroup: sGroup,
+          sImg64: sImg64,
+          sUsername: sUsername,
+          sDocID: sDocID,
+        ));
       });
       if (iRet > 0) {
         setState(() {});
@@ -62,41 +125,46 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   processCreateProduct() async {
-    Future.delayed(Duration(seconds: 2), () {
-      showDialog(
-          barrierDismissible: false,
-          context: context,
-          builder: (_) {
-            return AlertDialog(
-              title: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Text(
-                    "กรุณารอสักครู่",
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  JumpingDotsProgressIndicator(
-                    fontSize: 18.0,
-                  ),
-                ],
-              ),
-            );
-          });
-    });
-    await _imageTakePicture();
+    sBase64Img = '';
+    sBarcode = '';
 
+    String sBase64 = await _imageTakePicture();
+//    Future.delayed(Duration(seconds: 2), () {
+//    showDialog(
+//        barrierDismissible: false,
+//        context: context,
+//        builder: (_) {
+//          return AlertDialog(
+//            title: Row(
+//              crossAxisAlignment: CrossAxisAlignment.center,
+//              children: <Widget>[
+//                Text(
+//                  "กรุณารอสักครู่",
+//                  style: TextStyle(fontSize: 20),
+//                ),
+//                JumpingDotsProgressIndicator(
+//                  fontSize: 18.0,
+//                ),
+//              ],
+//            ),
+//          );
+//        });
+
+//    });
     if (sBase64Img != null && sBase64Img != '') {
       await scan();
-      Navigator.pop(context);
 
-      if (sBarcode != null) {
-        String sDate = datetimeFormat.format(currentDt);
+      if (sBarcode != null && sBarcode != '') {
+        String sDate = currentDt.toString();
+
 //      mdProduct.add(ModelProduct(sBarcode,sDate: sDate,sCode: sBarcode,sName: 'ไม่ระบุ',sGroup: 'ไม่ระบุ',sImg64: sBase64Img));
-        await repository.addProduct(ModelProduct(sBarcode, sDate: sDate,
+        await repository.addProduct(ModelProduct(sBarcode,
+            sDate: sDate,
             sCode: sBarcode,
             sName: 'ไม่ระบุ',
             sGroup: 'ไม่ระบุ',
-            sImg64: sBase64Img));
+            sImg64: sBase64Img,
+            sUsername: sUsername));
         setDataListView();
       }
     }
@@ -104,13 +172,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   _imageTakePicture() async {
     var picture = await picker.getImage(
-        source: ImageSource.camera, maxHeight: 640, maxWidth: 480);
+        source: ImageSource.camera, maxHeight: 800, maxWidth: 600);
     ImageResize.Image imageFile =
     ImageResize.decodeJpg(File(picture.path).readAsBytesSync());
     ImageResize.Image thumbnail = ImageResize.copyResize(imageFile, width: 300);
     sBase64Img = base64Encode(ImageResize.encodePng(thumbnail));
 //    imageProduct = ImagesConverter.imageFromBase64String(sBase64Img);
     setState(() {});
+    return sBase64Img;
   }
 
   Future scan() async {
@@ -137,19 +206,33 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
         title: Text("รายการสินค้า"),
       ),
-      body: Container(child:
-      _buildSuggestions()
-      ),
+      body: Container(
+          child: Column(
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: <Widget>[
+                  Expanded(
+                    child: Container(
+                        decoration: BoxDecoration(color: Colors.grey.shade200),
+                        padding: EdgeInsets.all(5),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text('วันที่: ' + sFullDate),
+                            Text('ชื่อผู้ใช้งาน: ' + sUsername),
+                          ],
+                        )),
+                  )
+                ],
+              ),
+              _buildSuggestions(),
+            ],
+          )),
       floatingActionButton: FloatingActionButton(
         onPressed: () => processCreateProduct(),
         tooltip: 'Scan',
@@ -182,9 +265,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
         }
       },
     )
-        : Center(
-      child: Container(
-        child: Text("ไม่มีรายการ"),
+        : Expanded(
+      child: Center(
+        child: Text(
+          "ไม่มีรายการ",
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
       ),
     );
   }
@@ -197,22 +283,113 @@ class _AddProductScreenState extends State<AddProductScreen> {
         child: new Column(
           children: <Widget>[
             Expanded(
-              flex: 6,
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Container(
-                        padding: EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5)),
-                        child:
-                        ImagesConverter.imageFromBase64String(pair.sImg64)),
-                  ),
-                ],
-              ),
-            ),
+                flex: 6,
+                child: Stack(
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: InkWell(
+                            child: new Hero(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(5),
+                                        topRight: Radius.circular(5)),
+                                    border: Border.all(color: Colors.grey)),
+                                child: ClipRRect(
+                                    borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(5),
+                                        topRight: Radius.circular(5)),
+                                    child:
+                                    ImagesConverter.imageFromBase64String(
+                                        pair.sImg64)),
+                              ),
+                              tag: pair.sImg64,
+                            ),
+                            onTap: () {
+                              Navigator.of(context).push(new PageRouteBuilder(
+                                  opaque: false,
+                                  pageBuilder: (BuildContext context, _, __) {
+                                    return new Material(
+                                        color: Colors.black38,
+                                        child: new Container(
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                              BorderRadius.circular(5)),
+//                                    padding: const EdgeInsets.all(30.0),
+                                          child: new InkWell(
+                                            child: new Hero(
+                                              child: ClipRRect(
+                                                  borderRadius:
+                                                  BorderRadius.only(
+                                                      topLeft: Radius
+                                                          .circular(5),
+                                                      topRight:
+                                                      Radius.circular(
+                                                          5)),
+                                                  child: ImagesConverter
+                                                      .imageFromBase64String(
+                                                      pair.sImg64,
+                                                      bTapView: true)),
+                                              tag: pair.sImg64,
+                                            ),
+                                            onTap: () {
+                                              Navigator.pop(context);
+                                            },
+                                          ),
+                                        ));
+                                  }));
+                            },
+                          ),
+                        )
+                      ],
+                    ),
+                    Positioned(
+                      top: 1,
+                      right: 1,
+                      child: IconButton(
+                          icon: Icon(
+                            Icons.remove_circle,
+                            color: Colors.red,
+                          ),
+                          onPressed: () {
+                            showDialog(
+                                context: context,
+                                builder: (_) {
+                                  return AlertDialog(
+                                    title: Text("ต้องการลบรายการนี้หรือไม่?"),
+                                    actions: <Widget>[
+                                      FlatButton.icon(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          icon: Icon(Icons.close,
+                                              color: Colors.grey),
+                                          label: Text(
+                                            "ยกเลิก",
+                                            style:
+                                            TextStyle(color: Colors.grey),
+                                          )),
+                                      FlatButton.icon(
+                                          onPressed: () async {
+                                            String sResult =
+                                            await deleteFromDB(pair.sDocID);
+                                          },
+                                          icon: Icon(Icons.delete_forever,
+                                              color: Colors.red),
+                                          label: Text(
+                                            "ลบ",
+                                            style: TextStyle(color: Colors.red),
+                                          )),
+                                    ],
+                                  );
+                                });
+                          }),
+                    )
+                  ],
+                )),
             Expanded(
-              flex: 2,
+              flex: 1,
               child: new Container(
                 padding: EdgeInsets.only(left: 5),
                 child: new Row(
@@ -227,20 +404,47 @@ class _AddProductScreenState extends State<AddProductScreen> {
               ),
             ),
             Expanded(
-              flex: 2,
+              flex: 1,
               child: new Container(
                 padding: EdgeInsets.only(left: 5),
                 child: new Row(
                   children: <Widget>[
                     Text(
-                      pair.sDate + ' น.',
+                      pair.sDate,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(fontSize: 12),
                     ),
                   ],
                 ),
               ),
-            )
+            ),
+            Expanded(
+              flex: 1,
+              child: new Container(
+                padding: EdgeInsets.only(left: 5),
+                child: new Row(
+                  children: <Widget>[
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        Icon(
+                          Icons.person,
+                          size: 15,
+                        ),
+                        SizedBox(
+                          width: 5,
+                        ),
+                        Text(
+                          pair.sUsername,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 12, height: 1.1),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

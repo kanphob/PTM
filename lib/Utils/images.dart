@@ -4,7 +4,7 @@ import 'dart:typed_data';
 
 class ImagesConverter {
   static Image imageFromBase64String(String base64String,
-      {int iTypeImage = 1}) {
+      {int iTypeImage = 1, bool bTapView = false}) {
     Image imgs = null;
     String defaultImage;
 
@@ -18,7 +18,8 @@ class ImagesConverter {
               base64String.replaceAll('\n', '').replaceAll('\r', '').trim();
           imgs = Image.memory(
             base64Decode(base64String),
-            fit: BoxFit.cover,
+            fit: bTapView ? BoxFit.contain : BoxFit.cover,
+            filterQuality: FilterQuality.medium,
           );
         } else {
           imgs = Image.asset(

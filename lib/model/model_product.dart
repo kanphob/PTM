@@ -7,6 +7,8 @@ class ModelProduct {
   String sBarcode;
   String sGroup;
   String sImg64;
+  String sUsername;
+  String sDocID;
   DocumentReference reference;
 
   ModelProduct(this.sBarcode,
@@ -15,6 +17,8 @@ class ModelProduct {
       this.sName,
       this.sGroup,
       this.sImg64,
+      this.sUsername,
+      this.sDocID,
       this.reference});
 
   factory ModelProduct.fromJson(Map<dynamic, dynamic> json) =>
@@ -53,12 +57,16 @@ class ModelProduct {
 }
 
 ModelProduct _ModelProductFromJson(Map<dynamic, dynamic> json) {
-  return ModelProduct(json['barcode'] as String,
-      sDate: json['date'] as String,
-      sCode: json['code'] as String,
-      sName: json['name'] as String,
-      sGroup: json['group'] as String,
-      sImg64: json['image'] as String);
+  return ModelProduct(
+    json['barcode'] as String,
+    sDate: json['date'] as String,
+    sCode: json['code'] as String,
+    sName: json['name'] as String,
+    sGroup: json['group'] as String,
+    sImg64: json['image'] as String,
+    sUsername: json['username'] as String,
+    sDocID: json['docID'] as String,
+  );
 }
 
 //2
@@ -69,5 +77,7 @@ Map<String, dynamic> _ModelProductToJson(ModelProduct instance) =>
       'code': instance.sCode,
       'name': instance.sName,
       'group': instance.sGroup,
-      'image': instance.sImg64
+      'image': instance.sImg64,
+      'username': instance.sUsername,
+      'docID': instance.sDocID,
     };

@@ -44,6 +44,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   Color whiteColor = Colors.white;
+  final GlobalKey<FormState> _loginFormKey = GlobalKey<FormState>();
+  TextEditingController usernameController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -65,7 +68,84 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(
                     height: 10,
                   ),
-                  Row(
+              Column(
+                children: <Widget>[
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: 30),
+                    padding: EdgeInsets.symmetric(vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      border: Border.all(color: Colors.red, width: 2),
+                      borderRadius: BorderRadius.circular(5),
+                      boxShadow: [
+                        BoxShadow(
+                          blurRadius: 8,
+                          color: Colors.black.withOpacity(0.1),
+                          spreadRadius: 3,
+                        )
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        new Center(
+                          child: Form(
+                            key: _loginFormKey,
+                            autovalidate: false,
+                            child: new Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                new Padding(
+                                    padding: EdgeInsets.only(
+                                        left: 20.0, right: 20.0),
+                                    child: Container(
+                                      child: Column(
+                                        children: <Widget>[
+                                          new TextFormField(
+                                            controller: usernameController,
+                                            autofocus: true,
+                                            style: TextStyle(
+                                              fontSize: 18.0,
+                                              color: Color(0xff3e4a59),
+                                            ),
+                                            decoration: new InputDecoration(
+                                                labelText: "ชื่อผู้ใช้งาน*",
+                                                errorStyle:
+                                                    TextStyle(fontSize: 10),
+                                                hintStyle:
+                                                    TextStyle(fontSize: 12),
+                                                icon: Image.asset(
+                                                  "assets/images/user_icon3.png",
+                                                  height: 40.0,
+                                                  width: 40.0,
+                                                  fit: BoxFit.scaleDown,
+                                                )),
+                                            keyboardType:
+                                                TextInputType.emailAddress,
+                                            validator: (val) => val.length == 0
+                                                ? "กรุณาระบุชื่อผู้ใช้งาน."
+                                                : null,
+                                          ),
+                                        ],
+                                      ),
+                                    )),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       RaisedButton(
@@ -74,7 +154,11 @@ class _HomePageState extends State<HomePage> {
                         ),
                         padding: EdgeInsets.only(top: 10,bottom: 10,left: 20,right: 20),
                         onPressed: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => AddProductScreen()));
+                          if (_loginFormKey.currentState.validate()) {
+                            Navigator.push(context, MaterialPageRoute(builder: (
+                                context) => AddProductScreen(
+                              sUsername: usernameController.text,)));
+                          }
                         },
                       ),
                     ],
