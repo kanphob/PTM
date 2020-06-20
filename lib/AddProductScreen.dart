@@ -78,8 +78,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   deleteFromDB(String sDocID) async {
     await Firestore.instance.collection("product").document(sDocID).delete();
-    setDataListView();
     Navigator.pop(context, 'deleted');
+    await setDataListView();
+    setState(() {});
   }
 
   setDataListView() async {
@@ -130,28 +131,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
     sBarcode = '';
 
     String sBase64 = await _imageTakePicture();
-//    Future.delayed(Duration(seconds: 2), () {
-//    showDialog(
-//        barrierDismissible: false,
-//        context: context,
-//        builder: (_) {
-//          return AlertDialog(
-//            title: Row(
-//              crossAxisAlignment: CrossAxisAlignment.center,
-//              children: <Widget>[
-//                Text(
-//                  "กรุณารอสักครู่",
-//                  style: TextStyle(fontSize: 20),
-//                ),
-//                JumpingDotsProgressIndicator(
-//                  fontSize: 18.0,
-//                ),
-//              ],
-//            ),
-//          );
-//        });
-
-//    });
     if (sBase64Img != null && sBase64Img != '') {
       await scan();
 
@@ -173,7 +152,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   _imageTakePicture() async {
     var picture = await picker.getImage(
-        source: ImageSource.camera, maxHeight: 800, maxWidth: 600);
+      source: ImageSource.camera,
+      maxHeight: 800,
+      maxWidth: 600,
+      imageQuality: 85,);
     ImageResize.Image imageFile =
         ImageResize.decodeJpg(File(picture.path).readAsBytesSync());
     ImageResize.Image thumbnail = ImageResize.copyResize(imageFile, width: 300);
@@ -209,9 +191,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("รายการสินค้า"),
+          title: GestureDetector(
+            child: Text("รายการสินค้า"),
+            onTap: () {
+
+            },
+          )
       ),
-      body: Container(
+      body: SingleChildScrollView(
+          physics: BouncingScrollPhysics(),
           child: Column(
             children: <Widget>[
               Row(
