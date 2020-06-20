@@ -37,7 +37,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   DataRepository repository = DataRepository();
   String sFullDate = '';
   String sUsername = '';
-
+  List<DocumentSnapshot> documentList = new List();
   String getMonthName(final int month) {
     switch (month) {
       case 1:
@@ -69,21 +69,37 @@ class _AddProductScreenState extends State<AddProductScreen> {
     }
   }
 
+  bool isProcess = false;
+
+  waitProcess() async {
+    if (!isProcess) {
+      isProcess = true;
+      await setDataListViewScrolling();
+      isProcess = false;
+//      if(isLoading){
+//        isLoading = false;
+//        setState(() {});
+//      }
+    }
+  }
+
   @override
   void initState() {
     if (this.widget.sUsername != null) sUsername = this.widget.sUsername;
-    setDataListView();
+
+    setDataListViewFirstTime();
     super.initState();
   }
 
   deleteFromDB(String sDocID) async {
     await Firestore.instance.collection("product").document(sDocID).delete();
     Navigator.pop(context, 'deleted');
-    await setDataListView();
+    await setDataListViewFirstTime();
     setState(() {});
   }
 
-  setDataListView() async {
+  setDataListViewFirstTime() async {
+    documentList.clear();
     sFullDate = currentDt.day.toString() +
         " " +
         getMonthName(currentDt.month) +
@@ -94,6 +110,54 @@ class _AddProductScreenState extends State<AddProductScreen> {
     await Firestore.instance
         .collection("product")
         .orderBy("date", descending: true)
+        .limit(10)
+        .getDocuments()
+        .then((value) {
+      int iRet = value.documents.length;
+      value.documents.forEach((element) {
+        String sBarcode = element.data['barcode'];
+        String sDate = element.data['date'];
+        String sCode = element.data['code'];
+        String sName = element.data['name'];
+        String sGroup = element.data['group'];
+        String sImg64 = element.data['image'];
+        String sUsername = element.data['username'];
+        String sDocID = element.documentID;
+        DateTime dtDocDate = DateTime.parse(sDate);
+        String dateFormat = datetimeFormat.format(DateTime(dtDocDate.year + 543,
+            dtDocDate.month, dtDocDate.day, dtDocDate.hour, dtDocDate.minute));
+        mdProduct.add(ModelProduct(
+          sBarcode,
+          sDate: dateFormat,
+          sCode: sCode,
+          sName: sName,
+          sGroup: sGroup,
+          sImg64: sImg64,
+          sUsername: sUsername,
+          sDocID: sDocID,
+        ));
+        documentList.add(element);
+      });
+      if (iRet > 0) {
+//        Navigator.pop(context);
+        setState(() {});
+      }
+    });
+  }
+
+  setDataListViewScrolling() async {
+    sFullDate = currentDt.day.toString() +
+        " " +
+        getMonthName(currentDt.month) +
+        " " +
+        (currentDt.year + 543).toString();
+    // สำหรับดึงข้อมูล firebase
+    mdProduct.clear();
+    await Firestore.instance
+        .collection("product")
+        .orderBy("date", descending: true)
+        .limit(10)
+        .startAfterDocument(documentList[documentList.length])
         .getDocuments()
         .then((value) {
       int iRet = value.documents.length;
@@ -121,6 +185,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         ));
       });
       if (iRet > 0) {
+//        Navigator.pop(context);
         setState(() {});
       }
     });
@@ -145,7 +210,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             sGroup: 'ไม่ระบุ',
             sImg64: sBase64Img,
             sUsername: sUsername));
-        setDataListView();
+        setDataListViewFirstTime();
       }
     }
   }
@@ -155,7 +220,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
       source: ImageSource.camera,
       maxHeight: 800,
       maxWidth: 600,
-      imageQuality: 85,);
+      imageQuality: 95,
+    );
     ImageResize.Image imageFile =
         ImageResize.decodeJpg(File(picture.path).readAsBytesSync());
     ImageResize.Image thumbnail = ImageResize.copyResize(imageFile, width: 300);
@@ -193,35 +259,37 @@ class _AddProductScreenState extends State<AddProductScreen> {
       appBar: AppBar(
           title: GestureDetector(
             child: Text("รายการสินค้า"),
-            onTap: () {
-
-            },
-          )
-      ),
+            onTap: () {},
+          )),
       body: SingleChildScrollView(
-          physics: BouncingScrollPhysics(),
+        physics: BouncingScrollPhysics(),
+        child: Container(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: <Widget>[
                   Expanded(
                     child: Container(
-                        decoration: BoxDecoration(color: Colors.grey.shade200),
-                        padding: EdgeInsets.all(5),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text('วันที่: ' + sFullDate),
-                            Text('ชื่อผู้ใช้งาน: ' + sUsername),
-                          ],
-                        )),
+                      decoration: BoxDecoration(color: Colors.grey.shade200),
+                      padding: EdgeInsets.all(5),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text('วันที่: ' + sFullDate),
+                          Text('ชื่อผู้ใช้งาน: ' + sUsername),
+                        ],
+                      ),
+                    ),
                   )
                 ],
               ),
               _buildSuggestions(),
             ],
-          )),
+          ),
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => processCreateProduct(),
         tooltip: 'Scan',
@@ -241,25 +309,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
       itemBuilder: (context, i) {
         final index = i;
 
-//        if (index >= mdProduct.length) {
-//          getProduct(index);
-//        }
+        if (index >= documentList.length) {
+          setDataListViewScrolling();
+        }
 
-//        for (int i = 0; i < index + 1; i++) {
-//          values.add(0);
-//        }
 
         if (mdProduct.length > 0 && index < mdProduct.length) {
           return _buildRow(mdProduct[index], index);
         }
       },
     )
-        : Expanded(
-      child: Center(
-        child: Text(
-          "ไม่มีรายการ",
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
+        : Center(
+      child: Text(
+        "ไม่มีรายการ",
+        style: TextStyle(fontWeight: FontWeight.w700),
       ),
     );
   }
@@ -270,168 +333,160 @@ class _AddProductScreenState extends State<AddProductScreen> {
       color: Colors.white,
       child: new GestureDetector(
         child: new Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Expanded(
-                flex: 6,
-                child: Stack(
-                  children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: InkWell(
-                            child: new Hero(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(5),
-                                        topRight: Radius.circular(5)),
-                                    border: Border.all(color: Colors.grey)),
-                                child: ClipRRect(
-                                    borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(5),
-                                        topRight: Radius.circular(5)),
-                                    child:
-                                    ImagesConverter.imageFromBase64String(
-                                        pair.sImg64)),
-                              ),
-                              tag: pair.sImg64,
+              child: Stack(
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: InkWell(
+                          child: new Hero(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(5),
+                                      topRight: Radius.circular(5)),
+                                  border: Border.all(color: Colors.grey)),
+                              child: ClipRRect(
+                                  borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(5),
+                                      topRight: Radius.circular(5)),
+                                  child:
+                                  ImagesConverter.imageFromBase64String(
+                                      pair.sImg64)),
                             ),
-                            onTap: () {
-                              Navigator.of(context).push(new PageRouteBuilder(
-                                  opaque: false,
-                                  pageBuilder: (BuildContext context, _, __) {
-                                    return new Material(
-                                        color: Colors.black38,
-                                        child: new Container(
-                                          decoration: BoxDecoration(
-                                              borderRadius:
-                                              BorderRadius.circular(5)),
+                            tag: pair.sImg64,
+                          ),
+                          onTap: () {
+                            Navigator.of(context).push(new PageRouteBuilder(
+                                opaque: false,
+                                pageBuilder: (BuildContext context, _, __) {
+                                  return new Material(
+                                      color: Colors.black38,
+                                      child: new Container(
+                                        decoration: BoxDecoration(
+                                            borderRadius:
+                                            BorderRadius.circular(5)),
 //                                    padding: const EdgeInsets.all(30.0),
-                                          child: new InkWell(
-                                            child: new Hero(
-                                              child: ClipRRect(
-                                                  borderRadius:
-                                                  BorderRadius.only(
-                                                      topLeft: Radius
-                                                          .circular(5),
-                                                      topRight:
-                                                      Radius.circular(
-                                                          5)),
-                                                  child: ImagesConverter
-                                                      .imageFromBase64String(
-                                                      pair.sImg64,
-                                                      bTapView: true)),
-                                              tag: pair.sImg64,
-                                            ),
-                                            onTap: () {
-                                              Navigator.pop(context);
-                                            },
+                                        child: new InkWell(
+                                          child: new Hero(
+                                            child: ClipRRect(
+                                                borderRadius:
+                                                BorderRadius.only(
+                                                    topLeft: Radius
+                                                        .circular(5),
+                                                    topRight:
+                                                    Radius.circular(
+                                                        5)),
+                                                child: ImagesConverter
+                                                    .imageFromBase64String(
+                                                    pair.sImg64,
+                                                    bTapView: true)),
+                                            tag: pair.sImg64,
                                           ),
-                                        ));
-                                  }));
-                            },
-                          ),
-                        )
-                      ],
-                    ),
-                    Positioned(
-                      top: 1,
-                      right: 1,
-                      child: IconButton(
-                          icon: Icon(
-                            Icons.remove_circle,
-                            color: Colors.red,
-                          ),
-                          onPressed: () {
-                            showDialog(
-                                context: context,
-                                builder: (_) {
-                                  return AlertDialog(
-                                    title: Text("ต้องการลบรายการนี้หรือไม่?"),
-                                    actions: <Widget>[
-                                      FlatButton.icon(
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                          icon: Icon(Icons.close,
-                                              color: Colors.grey),
-                                          label: Text(
-                                            "ยกเลิก",
-                                            style:
-                                            TextStyle(color: Colors.grey),
-                                          )),
-                                      FlatButton.icon(
-                                          onPressed: () async {
-                                            String sResult =
-                                            await deleteFromDB(pair.sDocID);
+                                          onTap: () {
+                                            Navigator.pop(context);
                                           },
-                                          icon: Icon(Icons.delete_forever,
-                                              color: Colors.red),
-                                          label: Text(
-                                            "ลบ",
-                                            style: TextStyle(color: Colors.red),
-                                          )),
-                                    ],
-                                  );
-                                });
-                          }),
-                    )
-                  ],
-                )),
-            Expanded(
-              flex: 1,
-              child: new Container(
-                padding: EdgeInsets.only(left: 5),
-                child: new Row(
-                  children: <Widget>[
-                    Text(
-                      pair.sBarcode,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                  ],
-                ),
+                                        ),
+                                      ));
+                                }));
+                          },
+                        ),
+                      )
+                    ],
+                  ),
+                  Positioned(
+                    top: 1,
+                    right: 1,
+                    child: IconButton(
+                        icon: Icon(
+                          Icons.remove_circle,
+                          color: Colors.red,
+                        ),
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              builder: (_) {
+                                return AlertDialog(
+                                  title: Text("ต้องการลบรายการนี้หรือไม่?"),
+                                  actions: <Widget>[
+                                    FlatButton.icon(
+                                        onPressed: () =>
+                                            Navigator.pop(context),
+                                        icon: Icon(Icons.close,
+                                            color: Colors.grey),
+                                        label: Text(
+                                          "ยกเลิก",
+                                          style:
+                                          TextStyle(color: Colors.grey),
+                                        )),
+                                    FlatButton.icon(
+                                        onPressed: () async {
+                                          String sResult =
+                                          await deleteFromDB(pair.sDocID);
+                                        },
+                                        icon: Icon(Icons.delete_forever,
+                                            color: Colors.red),
+                                        label: Text(
+                                          "ลบ",
+                                          style: TextStyle(color: Colors.red),
+                                        )),
+                                  ],
+                                );
+                              });
+                        }),
+                  )
+                ],
               ),
             ),
-            Expanded(
-              flex: 1,
-              child: new Container(
-                padding: EdgeInsets.only(left: 5),
-                child: new Row(
-                  children: <Widget>[
-                    Text(
-                      pair.sDate,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ],
-                ),
+            new Container(
+              padding: EdgeInsets.only(left: 5),
+              child: new Row(
+                children: <Widget>[
+                  Text(
+                    pair.sBarcode,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ],
               ),
             ),
-            Expanded(
-              flex: 1,
-              child: new Container(
-                padding: EdgeInsets.only(left: 5),
-                child: new Row(
-                  children: <Widget>[
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: <Widget>[
-                        Icon(
-                          Icons.person,
-                          size: 15,
-                        ),
-                        SizedBox(
-                          width: 5,
-                        ),
-                        Text(
-                          pair.sUsername,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 12, height: 1.1),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
+            new Container(
+              padding: EdgeInsets.only(left: 5),
+              child: new Row(
+                children: <Widget>[
+                  Text(
+                    pair.sDate,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            new Container(
+              padding: EdgeInsets.only(left: 5),
+              child: new Row(
+                children: <Widget>[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: <Widget>[
+                      Icon(
+                        Icons.person,
+                        size: 15,
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Text(
+                        pair.sUsername,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, height: 1.1),
+                      ),
+                    ],
+                  )
+                ],
               ),
             ),
           ],
