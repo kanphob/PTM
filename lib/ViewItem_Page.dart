@@ -17,7 +17,6 @@ class _ViewItemPageState extends State<ViewItemPage> {
   List<DocumentSnapshot> _documentList = new List();
   ModelProduct mdProduct;
   String sFullDate = '';
-  String sUsername = '';
   String sListData = '';
   DateTime currentDt = DateTime.now();
   DateTime dtStartDate = DateTime.now();
@@ -27,6 +26,12 @@ class _ViewItemPageState extends State<ViewItemPage> {
   DateFormat dateFormat = DateFormat('dd-MM-yyyy');
   DateFormat timeFormat = DateFormat('HH:mm');
   Image image;
+  String sThaiMonths = '';
+  String sTimes = '';
+  String sCodes = '';
+  String sNames = '';
+  String sGroups = '';
+  String sUserName = '';
   String getMonthName(final int month) {
     switch (month) {
       case 1:
@@ -65,7 +70,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
         (currentDt.year).toString();
     int iRet = 0 ;
     // สำหรับดึงข้อมูล firebase
-    await Firestore.instance.collection("product").where("barcode", isEqualTo: widget.sBarcode.toString().substring(0, 10)).getDocuments().then((value) {
+    await Firestore.instance.collection("product").where("barcode", isEqualTo: widget.sBarcode).getDocuments().then((value) {
       iRet = value.documents.length;
       String sBarcode = value.documents[0].data['barcode'];
       String sDate = value.documents[0].data['date'];
@@ -80,31 +85,34 @@ class _ViewItemPageState extends State<ViewItemPage> {
       String sThaiMonth = sTime;
       String dateFormat = datetimeFormat.format(DateTime(dtDocDate.year,
           dtDocDate.month, dtDocDate.day, dtDocDate.hour, dtDocDate.minute));
-      Image itemImage = ImagesConverter.imageFromBase64String(sImg64);
-      if(sImg64 != null && sImg64 != null) {
+      Image itemImage ;
+      if(itemImage != null && sImg64 != null) {
         itemImage = ImagesConverter.imageFromBase64String(sImg64);
+        image = itemImage;
       }
-      else{
-        itemImage = image;
-      }
-      mdProduct = ModelProduct(
-        sBarcode,
-        sDate: sThaiMonth,
-        sTime: sTime,
-        sCode: sCode,
-        sName: sName,
-        sGroup: sGroup,
-        sImg64: sImg64,
-        imageList: itemImage,
-        sUsername: sUsername,
-        sDocID: sDocID,
-      );
+      widget.sBarcode = sBarcode;
+      sThaiMonths = sThaiMonth;
+      sCodes = sCode;
+      sNames = sName;
+      sGroups = sGroup;
+      sUserName = sUsername;
+//      mdProduct = ModelProduct(
+//        widget.sBarcode,
+//        sDate: sThaiMonth,
+//        sTime: sTime,
+//        sCode: sCode,
+//        sName: sName,
+//        sGroup: sGroup,
+//        sImg64: sImg64,
+//        imageList: itemImage,
+//        sUsername: sUsername,
+//        sDocID: sDocID,
+//      );
       }
     );
     if (iRet > 0) {
 //        Navigator.pop(context);
       setState(() {
-        image = mdProduct.imageList;
       });
     }
   }
@@ -122,7 +130,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
           appBar: _buildAppBar(),
           body: Column(
             children: <Widget>[
-              _buildShowContent(mdProduct),
+              _buildShowContent(),
             ],
           ),
         ),
@@ -134,110 +142,59 @@ class _ViewItemPageState extends State<ViewItemPage> {
         title: Text("รายการสินค้า"),
     );
   }
-  Widget _buildShowContent(ModelProduct mdProduct){
+  Widget _buildShowContent(){
     return Column(
       children: <Widget>[
-        Expanded(
-          child: Stack(
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: InkWell(
-                      child: new Hero(
-                        child: Container(
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(5),
-                                  topRight: Radius.circular(5)),
-                              border: Border.all(color: Colors.grey)),
-                          child: ClipRRect(
-                              borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(5),
-                                  topRight: Radius.circular(5)),
-                              child: mdProduct.imageList != null ? mdProduct.imageList :  Container()
-                          ),
-                        ),
-                        tag: mdProduct.sImg64,
-                      ),
-                      onTap: () {
-                        Navigator.of(context).push(new PageRouteBuilder(
-                            opaque: false,
-                            pageBuilder: (BuildContext context, _, __) {
-                              return new Material(
-                                  color: Colors.black38,
-                                  child: new Container(
-                                    decoration: BoxDecoration(
-                                        borderRadius:
-                                        BorderRadius.circular(5)),
-//                                    padding: const EdgeInsets.all(30.0),
-                                    child: new InkWell(
-                                      child: new Hero(
-                                        child: ClipRRect(
-                                            borderRadius: BorderRadius.only(
-                                                topLeft: Radius.circular(5),
-                                                topRight:
-                                                Radius.circular(5)),
-                                            child: ImagesConverter
-                                                .imageFromBase64String(
-                                                mdProduct.sImg64,
-                                                bTapView: true)),
-                                        tag: mdProduct.sImg64,
-                                      ),
-                                      onTap: () {
-                                        Navigator.pop(context);
-                                      },
-                                    ),
-                                  ));
-                            }));
-                      },
-                    ),
-                  )
-                ],
+        InkWell(
+          child: new Hero(
+            child: Container(
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(5),
+                      topRight: Radius.circular(5)),
+                  border: Border.all(color: Colors.grey)),
+              child: ClipRRect(
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(5),
+                    topRight: Radius.circular(5)),
+                child: image,
               ),
-              Positioned(
-                top: 1,
-                right: 1,
-                child: IconButton(
-                    icon: Icon(
-                      Icons.remove_circle,
-                      color: Colors.red,
-                    ),
-                    onPressed: () {
-                      showDialog(
-                          context: context,
-                          builder: (_) {
-                            return AlertDialog(
-                              title: Text("ต้องการลบรายการนี้หรือไม่?"),
-                              actions: <Widget>[
-                                FlatButton.icon(
-                                    onPressed: () => Navigator.pop(context),
-                                    icon: Icon(Icons.close,
-                                        color: Colors.grey),
-                                    label: Text(
-                                      "ยกเลิก",
-                                      style: TextStyle(color: Colors.grey),
-                                    )),
-//                                FlatButton.icon(
-//                                    onPressed: () async {
-//                                      String sResult =
-//                                      await deleteFromDB(pair.sDocID);
-//                                    },
-//                                    icon: Icon(Icons.delete_forever,
-//                                        color: Colors.red),
-//                                    label: Text(
-//                                      "ลบ",
-//                                      style: TextStyle(color: Colors.red),
-//                                    )),
-                              ],
-                            );
-                          });
-                    }),
-              )
-            ],
+            ),
+            tag: widget.sBarcode,
           ),
+          onTap: () {
+            print(sThaiMonths);
+//            Navigator.of(context).push(new PageRouteBuilder(
+//                opaque: false,
+//                pageBuilder: (BuildContext context, _, __) {
+//                  return new Material(
+//                      color: Colors.black38,
+//                      child: new Container(
+//                        decoration: BoxDecoration(
+//                            borderRadius:
+//                            BorderRadius.circular(5)),
+////                                    padding: const EdgeInsets.all(30.0),
+//                        child: new InkWell(
+//                          child: new Hero(
+//                            child: ClipRRect(
+//                              borderRadius: BorderRadius.only(
+//                                  topLeft: Radius.circular(5),
+//                                  topRight:
+//                                  Radius.circular(5)),
+//                              child: ImagesConverter.imageFromBase64String(widget.sBarcode,
+//                                  bTapView: true),
+//                            ),
+//                            tag: widget.sBarcode,
+//                          ),
+//                          onTap: () {
+//                            Navigator.pop(context);
+//                          },
+//                        ),
+//                      ));
+//                }));
+          },
         ),
-      ],
+      ]
     );
   }
 }

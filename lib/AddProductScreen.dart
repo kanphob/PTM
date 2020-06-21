@@ -199,7 +199,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
   getDataBySearch(String sSeachName) async {
     // สำหรับดึงข้อมูล firebase
     mdProduct.clear();
-    documentList.clear();
     await Firestore.instance
         .collection("product")
         .where("barcode", isGreaterThanOrEqualTo: sSeachName)
