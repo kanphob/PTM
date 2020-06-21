@@ -51,7 +51,6 @@ class _HomePageState extends State<HomePage> {
   Color whiteColor = Colors.white;
   final GlobalKey<FormState> _loginFormKey = GlobalKey<FormState>();
   TextEditingController usernameController = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(

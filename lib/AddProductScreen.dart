@@ -52,6 +52,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   DateTime currentDT = DateTime.now();
   TextEditingController searchBar_controller = TextEditingController();
   List<DocumentSnapshot> documentList = new List();
+  FocusNode focusSearch = FocusNode();
   bool bNoMoreData = false;
   TextStyle _textStyleButton = TextStyle(color: Colors.white);
   String getMonthName(final int month) {
@@ -100,6 +101,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   @override
+  void dispose() {
+    focusSearch.dispose();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     if (this.widget.sUsername != null) sUsername = this.widget.sUsername;
     String sThaiMonth = dtStartDate.day.toString() +
@@ -127,6 +134,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         (currentDt.year).toString();
     // สำหรับดึงข้อมูล firebase
     mdProduct.clear();
+    documentList.clear();
     await Firestore.instance
         .collection("product")
         .where("date", isEqualTo: dtStartDate.toString().substring(0, 10))
@@ -191,6 +199,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   getDataBySearch(String sSeachName) async {
     // สำหรับดึงข้อมูล firebase
     mdProduct.clear();
+    documentList.clear();
     await Firestore.instance
         .collection("product")
         .where("barcode", isGreaterThanOrEqualTo: sSeachName)
@@ -418,11 +427,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
     await Future.delayed(Duration(milliseconds: 700));
 
     String sSearchName = searchBar_controller.text;
-    if (search.length < 3) {
+    if (search.length == 0) {
       sSearchName = "";
-    }
-    if (search == sSearchName) {
-      getDataBySearch(sSearchName);
+      await setDataListViewFirstTime();
+    } else {
+      if (search == sSearchName) {
+        await getDataBySearch(sSearchName);
+      }
     }
   }
 
@@ -553,27 +564,29 @@ class _AddProductScreenState extends State<AddProductScreen> {
         ),
         mdProduct.length > 0
             ? Expanded(
-          child: new GridView.builder(
-            physics: BouncingScrollPhysics(),
-            itemCount: mdProduct.length + 1,
-            shrinkWrap: true,
-            gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2),
-            itemBuilder: (context, i) {
-              final index = i;
+                child: new SingleChildScrollView(
+                physics: BouncingScrollPhysics(),
+                child: GridView.builder(
+                  physics: BouncingScrollPhysics(),
+                  itemCount: mdProduct.length + 1,
+                  shrinkWrap: true,
+                  gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2),
+                  itemBuilder: (context, i) {
+                    final index = i;
 
-              if (index >= documentList.length) {
-                if (!bNoMoreData) {
-                  waitProcess();
-                }
-              }
+                    if (index >= documentList.length) {
+                      if (!bNoMoreData) {
+                        waitProcess();
+                      }
+                    }
 
-              if (mdProduct.length > 0 && index < mdProduct.length) {
-                return _buildRow(mdProduct[index], index);
-              }
-            },
-          ),
-        )
+                    if (mdProduct.length > 0 && index < mdProduct.length) {
+                      return _buildRow(mdProduct[index], index);
+                    }
+                  },
+                ),
+              ))
             : Expanded(
           child: Center(
             child: Text(
@@ -622,6 +635,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   textAlign: TextAlign.center,
                   controller: dateStart_controller,
                   format: dateFormat,
+                  focusNode: focusSearch,
                   style: TextStyle(color: Colors.blue, height: 1.4),
                   onShowPicker: (context, currentValue) async {
                     dtStartDate = DateTime(
