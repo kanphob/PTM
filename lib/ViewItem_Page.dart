@@ -208,6 +208,30 @@ class _ViewItemPageState extends State<ViewItemPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Container(
+          width: MediaQuery.of(context).size.width,
+          color: Colors.white,
+          padding: EdgeInsets.only(top: 7,bottom: 7),
+          margin: EdgeInsets.only(bottom: 5),
+          child: Container(
+            margin: EdgeInsets.only(left: 15,right: 15),
+            child: RichText(
+              overflow: TextOverflow.ellipsis,
+              text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'รหัสสินค้า : ',
+                      style: _textStyleLabel,
+                    ),
+                    TextSpan(
+                      text: sCodes,
+                      style: _textStyleData,
+                    ),
+                  ]
+              ),
+            ),
+          ),
+        ),
+        Container(
           color: Colors.white,
           padding: EdgeInsets.only(top: 7,bottom: 7),
           margin: EdgeInsets.only(bottom: 5),
@@ -305,30 +329,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
             ),
           ),
         ),
-        Container(
-          width: MediaQuery.of(context).size.width,
-          color: Colors.white,
-          padding: EdgeInsets.only(top: 7,bottom: 7),
-          margin: EdgeInsets.only(bottom: 5),
-          child: Container(
-            margin: EdgeInsets.only(left: 15,right: 15),
-            child: RichText(
-              overflow: TextOverflow.ellipsis,
-              text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'รหัสสินค้า : ',
-                      style: _textStyleLabel,
-                    ),
-                    TextSpan(
-                      text: sCodes,
-                      style: _textStyleData,
-                    ),
-                  ]
-              ),
-            ),
-          ),
-        ),
+
       ],
     );
   }
