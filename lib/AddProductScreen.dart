@@ -649,11 +649,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
               padding: EdgeInsets.only(left: 5),
               child: new Row(
                 children: <Widget>[
-                  Text(
-                    pair.sBarcode,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
+                  Expanded(
+                    child: Text(
+                      pair.sBarcode,
+                      overflow: TextOverflow.ellipsis,
+                      style:
+                          TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                    ),
+                  )
                 ],
               ),
             ),
