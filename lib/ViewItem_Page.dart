@@ -32,6 +32,9 @@ class _ViewItemPageState extends State<ViewItemPage> {
   String sNames = '';
   String sGroups = '';
   String sUserName = '';
+  TextStyle _textStyleLabel = TextStyle(color: Colors.black,fontSize: 18);
+  TextStyle _textStyleData = TextStyle(color: Colors.black,fontSize: 18,fontWeight: FontWeight.bold);
+  TextStyle _textStyleAppBar = TextStyle(fontWeight: FontWeight.bold);
   String getMonthName(final int month) {
     switch (month) {
       case 1:
@@ -86,7 +89,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
       String dateFormat = datetimeFormat.format(DateTime(dtDocDate.year,
           dtDocDate.month, dtDocDate.day, dtDocDate.hour, dtDocDate.minute));
       Image itemImage ;
-      if(itemImage != null && sImg64 != null) {
+      if(image  != null && sImg64 != null) {
         itemImage = ImagesConverter.imageFromBase64String(sImg64);
         image = itemImage;
       }
@@ -128,73 +131,241 @@ class _ViewItemPageState extends State<ViewItemPage> {
         onWillPop: null,
         child: Scaffold(
           appBar: _buildAppBar(),
-          body: Column(
-            children: <Widget>[
-              _buildShowContent(),
-            ],
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.red[500],Colors.red[100]],
+                begin: Alignment.topRight,
+                end: Alignment.center,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  alignment: Alignment.center,
+                  margin: EdgeInsets.only(top: 10,bottom: 15),
+                  child: _buildShowImage(),
+                ),
+                _buildShowDetail()
+              ],
+            ),
           ),
+          floatingActionButton: _buildButtonEdit(),
         ),
     );
   }
   Widget _buildAppBar(){
     return AppBar(
         centerTitle: true,
-        title: Text("รายการสินค้า"),
+        elevation: 5,
+        title: Text("รายการสินค้า",
+        style: _textStyleAppBar,
+        ),
     );
   }
-  Widget _buildShowContent(){
+  Widget _buildShowImage(){
+    return InkWell(
+      child: new Hero(
+        child: Container(
+          height: 200,
+          width: 200,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(5),
+              border: Border.all(color: Colors.red[600],width: 5)),
+          child: image
+        ),
+        tag: widget.sBarcode,
+      ),
+      onTap: () {
+        Navigator.of(context).push(
+            new PageRouteBuilder(
+            opaque: false,
+            pageBuilder: (BuildContext context, _, __) {
+              return new Material(
+                  color: Colors.black38,
+                  child: new Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: new InkWell(
+                      child: new Hero(
+                        child: image,
+                        tag: widget.sBarcode,
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ));
+            }));
+      },
+    );
+  }
+  Widget _buildShowDetail(){
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        InkWell(
-          child: new Hero(
-            child: Container(
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(5),
-                      topRight: Radius.circular(5)),
-                  border: Border.all(color: Colors.grey)),
-              child: ClipRRect(
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(5),
-                    topRight: Radius.circular(5)),
-                child: image,
+        Container(
+          color: Colors.white,
+          padding: EdgeInsets.only(top: 7,bottom: 7),
+          margin: EdgeInsets.only(bottom: 5),
+          child: Container(
+            margin: EdgeInsets.only(left: 15,right: 15),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                Expanded(
+                  child:
+                  RichText(
+                    overflow: TextOverflow.ellipsis,
+                    text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'ชื่อสินค้า : ',
+                            style: _textStyleLabel,
+                          ),
+                          TextSpan(
+                            text: sNames,
+                            style: _textStyleData,
+                          ),
+                        ]
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child:
+                  RichText(
+                    overflow: TextOverflow.ellipsis,
+                    text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'ชื่อผู้บันทึก : ',
+                            style: _textStyleLabel,
+                          ),
+                          TextSpan(
+                            text: sUserName,
+                            style: _textStyleData,
+                          ),
+                        ]
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Container(
+          color: Colors.grey[300],
+          padding: EdgeInsets.only(top: 7,bottom: 7),
+          margin: EdgeInsets.only(bottom: 5),
+          child: Container(
+            margin: EdgeInsets.only(left: 15,right: 15),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                Expanded(
+                  child:
+                  RichText(
+                    overflow: TextOverflow.ellipsis,
+                    text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'ประเภทสินค้า : ',
+                            style: _textStyleLabel,
+                          ),
+                          TextSpan(
+                            text: sGroups,
+                            style: _textStyleData,
+                          ),
+                        ]
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child:
+                  RichText(
+                    overflow: TextOverflow.ellipsis,
+                    text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'เวลาที่บันทึก : ',
+                            style: _textStyleLabel,
+                          ),
+                          TextSpan(
+                            text: sThaiMonths,
+                            style: _textStyleData,
+                          ),
+                        ]
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Container(
+          width: MediaQuery.of(context).size.width,
+          color: Colors.white,
+          padding: EdgeInsets.only(top: 7,bottom: 7),
+          margin: EdgeInsets.only(bottom: 5),
+          child: Container(
+            margin: EdgeInsets.only(left: 15,right: 15),
+            child: RichText(
+              overflow: TextOverflow.ellipsis,
+              text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'รหัสสินค้า : ',
+                      style: _textStyleLabel,
+                    ),
+                    TextSpan(
+                      text: sCodes,
+                      style: _textStyleData,
+                    ),
+                  ]
               ),
             ),
-            tag: widget.sBarcode,
           ),
-          onTap: () {
-            print(sThaiMonths);
-//            Navigator.of(context).push(new PageRouteBuilder(
-//                opaque: false,
-//                pageBuilder: (BuildContext context, _, __) {
-//                  return new Material(
-//                      color: Colors.black38,
-//                      child: new Container(
-//                        decoration: BoxDecoration(
-//                            borderRadius:
-//                            BorderRadius.circular(5)),
-////                                    padding: const EdgeInsets.all(30.0),
-//                        child: new InkWell(
-//                          child: new Hero(
-//                            child: ClipRRect(
-//                              borderRadius: BorderRadius.only(
-//                                  topLeft: Radius.circular(5),
-//                                  topRight:
-//                                  Radius.circular(5)),
-//                              child: ImagesConverter.imageFromBase64String(widget.sBarcode,
-//                                  bTapView: true),
-//                            ),
-//                            tag: widget.sBarcode,
-//                          ),
-//                          onTap: () {
-//                            Navigator.pop(context);
-//                          },
-//                        ),
-//                      ));
-//                }));
-          },
         ),
-      ]
+      ],
+    );
+  }
+  Widget _buildButtonEdit(){
+    return FloatingActionButton.extended(
+      icon: Icon(Icons.create),
+      label: Text("แก้ไขข้อมูลสินค้า"),
+      elevation: 5,
+      onPressed: () {
+        _onClickButtonEdit();
+      },
+    );
+  }
+  _onClickButtonEdit(){
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: new RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          contentPadding: EdgeInsets.only(top: 10,bottom: 10,right: 10,left: 10),
+          actionsPadding: EdgeInsets.only(top: 5,bottom: 5,right: 10,left: 10),
+          buttonPadding: EdgeInsets.only(top: 5,bottom: 5,),
+          title: new Text("กำลังพัฒนา..",),
+//          content: new Container(
+//            alignment: Alignment.center,
+//            child: Text("กำลังพัฒนา..",),
+//          ),
+          actions: <Widget>[
+            new FlatButton(
+              child: new Text("Close"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

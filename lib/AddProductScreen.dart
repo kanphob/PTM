@@ -417,9 +417,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
       // Unknown error.
     }
   }
-  _onClickPushPage(){
+  _onClickPushPage(String sBarCode){
     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return ViewItemPage(sBarcode: sBarcode,);
+      return ViewItemPage(sBarcode: sBarCode,);
     },));
   }
   searchData(String search) async {
@@ -438,39 +438,42 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _buildAppBar(),
-      body: Container(
-        child:
-//          child: Column(
-//            mainAxisAlignment: MainAxisAlignment.start,
-//            children: <Widget>[
-//              Row(
-//                mainAxisAlignment: MainAxisAlignment.start,
-//                children: <Widget>[
-//                  Expanded(
-//                    child: Container(
-//                      decoration: BoxDecoration(color: Colors.grey.shade200),
-//                      padding: EdgeInsets.all(5),
-//                      child: Column(
-//                        crossAxisAlignment: CrossAxisAlignment.start,
-//                        children: <Widget>[
-//                          Text('วันที่: ' + sFullDate),
-//                          Text('ชื่อผู้ใช้งาน: ' + sUsername),
-//                        ],
-//                      ),
-//                    ),
-//                  )
-//                ],
-//              ),
-        _buildSuggestions(),
-//            ],
-//          ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => processCreateProduct(),
-        tooltip: 'Scan',
-        child: Icon(Icons.add),
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+        appBar: _buildAppBar(),
+        body: Container(
+          child:
+  //          child: Column(
+  //            mainAxisAlignment: MainAxisAlignment.start,
+  //            children: <Widget>[
+  //              Row(
+  //                mainAxisAlignment: MainAxisAlignment.start,
+  //                children: <Widget>[
+  //                  Expanded(
+  //                    child: Container(
+  //                      decoration: BoxDecoration(color: Colors.grey.shade200),
+  //                      padding: EdgeInsets.all(5),
+  //                      child: Column(
+  //                        crossAxisAlignment: CrossAxisAlignment.start,
+  //                        children: <Widget>[
+  //                          Text('วันที่: ' + sFullDate),
+  //                          Text('ชื่อผู้ใช้งาน: ' + sUsername),
+  //                        ],
+  //                      ),
+  //                    ),
+  //                  )
+  //                ],
+  //              ),
+          _buildSuggestions(),
+  //            ],
+  //          ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => processCreateProduct(),
+          tooltip: 'Scan',
+          child: Icon(Icons.add),
+        ),
       ),
     );
   }
@@ -486,6 +489,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           },
         ));
   }
+
   Widget _buildSuggestions() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -500,7 +504,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text('ชื่อผู้ใช้งาน: ' + sUsername),
+                    RichText(
+                      text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'ชื่อผู้ใช้งาน : ',
+                              style: TextStyle(color: Colors.black,fontSize: 16),
+                            ),
+                            TextSpan(
+                              text: sUsername,
+                              style: TextStyle(color: Colors.deepOrangeAccent,fontSize: 18,fontWeight: FontWeight.bold,),
+                            ),
+                          ]
+                      ),
+                    ),
                     buildPickDate(),
                     Row(
                       children: <Widget>[
@@ -790,6 +807,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                             context: context,
                             builder: (_) {
                               return AlertDialog(
+                                shape: new RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 title: Text("ต้องการลบรายการนี้หรือไม่?"),
                                 actions: <Widget>[
                                   FlatButton.icon(
@@ -876,17 +894,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   ],
                 ),
                 Container(
-                  width: 70,
+                  width: 100,
                   height: 30,
                   margin: EdgeInsets.only(right: 5,),
                   child: MaterialButton(
                     color: Colors.red,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    child: Text('data',
+                    child: Text('เพิ่มเติม',
                       style: _textStyleButton,
                     ),
                     onPressed: (){
-                      _onClickPushPage();
+                      _onClickPushPage(pair.sBarcode);
                     },
                   ),
                 )
