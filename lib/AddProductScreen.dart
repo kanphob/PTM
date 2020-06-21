@@ -1,3 +1,4 @@
+import 'package:PTMRacing/ViewItem_Page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -423,13 +424,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-          title: GestureDetector(
-            child: Text("รายการสินค้า"),
-            onTap: () {
-              print(dtStartDate.toString().substring(0, 10));
-            },
-          )),
+      appBar: _buildAppBar(),
       body: Container(
         child:
 //          child: Column(
@@ -465,6 +460,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
   }
 
+  Widget _buildAppBar(){
+    return AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: true,
+        title: GestureDetector(
+          child: Text("รายการสินค้า"),
+          onTap: () {
+            print(dtStartDate.toString().substring(0, 10));
+          },
+        ));
+  }
   Widget _buildSuggestions() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -693,169 +699,183 @@ class _AddProductScreenState extends State<AddProductScreen> {
     return Card(
       elevation: 5.0,
       color: Colors.white,
-      child: new GestureDetector(
-        child: new Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Expanded(
-              child: Stack(
-                children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: InkWell(
-                          child: new Hero(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.only(
-                                      topLeft: Radius.circular(5),
-                                      topRight: Radius.circular(5)),
-                                  border: Border.all(color: Colors.grey)),
-                              child: ClipRRect(
-                                  borderRadius: BorderRadius.only(
-                                      topLeft: Radius.circular(5),
-                                      topRight: Radius.circular(5)),
-                                  child: pair.imageList),
-                            ),
-                            tag: pair.sImg64,
+      child: new Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Expanded(
+            child: Stack(
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: InkWell(
+                        child: new Hero(
+                          child: Container(
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(5),
+                                    topRight: Radius.circular(5)),
+                                border: Border.all(color: Colors.grey)),
+                            child: ClipRRect(
+                                borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(5),
+                                    topRight: Radius.circular(5)),
+                                child: pair.imageList),
                           ),
-                          onTap: () {
-                            Navigator.of(context).push(new PageRouteBuilder(
-                                opaque: false,
-                                pageBuilder: (BuildContext context, _, __) {
-                                  return new Material(
-                                      color: Colors.black38,
-                                      child: new Container(
-                                        decoration: BoxDecoration(
-                                            borderRadius:
-                                            BorderRadius.circular(5)),
+                          tag: pair.sImg64,
+                        ),
+                        onTap: () {
+                          Navigator.of(context).push(new PageRouteBuilder(
+                              opaque: false,
+                              pageBuilder: (BuildContext context, _, __) {
+                                return new Material(
+                                    color: Colors.black38,
+                                    child: new Container(
+                                      decoration: BoxDecoration(
+                                          borderRadius:
+                                          BorderRadius.circular(5)),
 //                                    padding: const EdgeInsets.all(30.0),
-                                        child: new InkWell(
-                                          child: new Hero(
-                                            child: ClipRRect(
-                                                borderRadius: BorderRadius.only(
-                                                    topLeft: Radius.circular(5),
-                                                    topRight:
-                                                    Radius.circular(5)),
-                                                child: ImagesConverter
-                                                    .imageFromBase64String(
-                                                    pair.sImg64,
-                                                    bTapView: true)),
-                                            tag: pair.sImg64,
-                                          ),
-                                          onTap: () {
-                                            Navigator.pop(context);
-                                          },
+                                      child: new InkWell(
+                                        child: new Hero(
+                                          child: ClipRRect(
+                                              borderRadius: BorderRadius.only(
+                                                  topLeft: Radius.circular(5),
+                                                  topRight:
+                                                  Radius.circular(5)),
+                                              child: ImagesConverter
+                                                  .imageFromBase64String(
+                                                  pair.sImg64,
+                                                  bTapView: true)),
+                                          tag: pair.sImg64,
                                         ),
-                                      ));
-                                }));
-                          },
-                        ),
-                      )
-                    ],
-                  ),
-                  Positioned(
-                    top: 1,
-                    right: 1,
-                    child: IconButton(
-                        icon: Icon(
-                          Icons.remove_circle,
-                          color: Colors.red,
-                        ),
-                        onPressed: () {
-                          showDialog(
-                              context: context,
-                              builder: (_) {
-                                return AlertDialog(
-                                  title: Text("ต้องการลบรายการนี้หรือไม่?"),
-                                  actions: <Widget>[
-                                    FlatButton.icon(
-                                        onPressed: () => Navigator.pop(context),
-                                        icon: Icon(Icons.close,
-                                            color: Colors.grey),
-                                        label: Text(
-                                          "ยกเลิก",
-                                          style: TextStyle(color: Colors.grey),
-                                        )),
-                                    FlatButton.icon(
-                                        onPressed: () async {
-                                          String sResult =
-                                          await deleteFromDB(pair.sDocID);
+                                        onTap: () {
+                                          Navigator.pop(context);
                                         },
-                                        icon: Icon(Icons.delete_forever,
-                                            color: Colors.red),
-                                        label: Text(
-                                          "ลบ",
-                                          style: TextStyle(color: Colors.red),
-                                        )),
-                                  ],
-                                );
-                              });
-                        }),
-                  )
-                ],
-              ),
+                                      ),
+                                    ));
+                              }));
+                        },
+                      ),
+                    )
+                  ],
+                ),
+                Positioned(
+                  top: 1,
+                  right: 1,
+                  child: IconButton(
+                      icon: Icon(
+                        Icons.remove_circle,
+                        color: Colors.red,
+                      ),
+                      onPressed: () {
+                        showDialog(
+                            context: context,
+                            builder: (_) {
+                              return AlertDialog(
+                                title: Text("ต้องการลบรายการนี้หรือไม่?"),
+                                actions: <Widget>[
+                                  FlatButton.icon(
+                                      onPressed: () => Navigator.pop(context),
+                                      icon: Icon(Icons.close,
+                                          color: Colors.grey),
+                                      label: Text(
+                                        "ยกเลิก",
+                                        style: TextStyle(color: Colors.grey),
+                                      )),
+                                  FlatButton.icon(
+                                      onPressed: () async {
+                                        String sResult =
+                                        await deleteFromDB(pair.sDocID);
+                                      },
+                                      icon: Icon(Icons.delete_forever,
+                                          color: Colors.red),
+                                      label: Text(
+                                        "ลบ",
+                                        style: TextStyle(color: Colors.red),
+                                      )),
+                                ],
+                              );
+                            });
+                      }),
+                )
+              ],
             ),
-            new Container(
-              padding: EdgeInsets.only(left: 5),
-              child: new Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Text(
-                      pair.sBarcode,
-                      overflow: TextOverflow.ellipsis,
-                      style:
-                          TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-                    ),
-                  )
-                ],
-              ),
-            ),
-            new Container(
-              padding: EdgeInsets.only(left: 5),
-              child: new Row(
-                children: <Widget>[
-                  Icon(
-                    Icons.access_time,
-                    size: 15,
-                  ),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  Text(
-                    pair.sDate + ' น.',
+          ),
+          new Container(
+            padding: EdgeInsets.only(left: 5),
+            child: new Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    pair.sBarcode,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12),
+                    style:
+                    TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                   ),
-                ],
-              ),
+                )
+              ],
             ),
-            new Container(
-              padding: EdgeInsets.only(left: 5),
-              child: new Row(
-                children: <Widget>[
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: <Widget>[
-                      Icon(
-                        Icons.person,
-                        size: 15,
-                      ),
-                      SizedBox(
-                        width: 5,
-                      ),
-                      Text(
-                        pair.sUsername,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12, height: 1.1),
-                      ),
-                    ],
-                  )
-                ],
-              ),
+          ),
+          new Container(
+            padding: EdgeInsets.only(left: 5),
+            child: new Row(
+              children: <Widget>[
+                Icon(
+                  Icons.access_time,
+                  size: 15,
+                ),
+                SizedBox(
+                  width: 5,
+                ),
+                Text(
+                  pair.sDate + ' น.',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          new Container(
+            padding: EdgeInsets.only(left: 5,bottom: 10),
+            child: new Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Wrap(
+                  children: <Widget>[
+                    Icon(
+                      Icons.person,
+                      size: 15,
+                    ),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Text(
+                      pair.sUsername,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12, height: 1.1),
+                    ),
+                  ],
+                ),
+                Container(
+                  width: 70,
+                  height: 30,
+                  margin: EdgeInsets.only(right: 5,),
+                  child: MaterialButton(
+                    color: Colors.red,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    child: Text('data',
+                      style: _textStyleButton,
+                    ),
+                    onPressed: (){
+                      _onClickPushPage();
+                    },
+                  ),
+                )
+              ],
+            )
+          ),
+        ],
       ),
     );
   }
