@@ -49,7 +49,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
   DateTime dtEndDate = DateTime.now();
   DateTime currentDateTime = DateTime.now();
   DateTime currentDT = DateTime.now();
+  TextEditingController searchBar_controller = TextEditingController();
   List<DocumentSnapshot> documentList = new List();
+  bool bNoMoreData = false;
   String getMonthName(final int month) {
     switch (month) {
       case 1:
@@ -153,6 +155,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
         String dateFormat = datetimeFormat.format(DateTime(dtDocDate.year,
             dtDocDate.month, dtDocDate.day, dtDocDate.hour, dtDocDate.minute));
         Image itemImage = ImagesConverter.imageFromBase64String(sImg64);
+        if (sBarcode == null) sBarcode = '';
+        if (sThaiMonth == null) sThaiMonth = '';
+        if (sTime == null) sTime = '';
+        if (sCode == null) sCode = '';
+        if (sName == null) sName = '';
+        if (sGroup == null) sGroup = '';
+        if (sImg64 == null) sImg64 = '';
+        if (sUsername == null) sUsername = '';
         mdProduct.add(ModelProduct(
           sBarcode,
           sDate: sThaiMonth,
@@ -167,6 +177,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
         ));
         documentList.add(element);
       });
+      if (iRet == 0) sListData = "ไม่มีรายการ";
+      if (iRet == 0) bNoMoreData = true;
       if (iRet > 0) {
 //        Navigator.pop(context);
         setState(() {});
@@ -174,20 +186,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
     });
   }
 
-  setDataListViewScrolling() async {
-    sFullDate = currentDt.day.toString() +
-        " " +
-        getMonthName(currentDt.month) +
-        " " +
-        (currentDt.year).toString();
-
+  getDataBySearch(String sSeachName) async {
     // สำหรับดึงข้อมูล firebase
+    mdProduct.clear();
     await Firestore.instance
         .collection("product")
-        .where("date", isEqualTo: dtStartDate.toString().substring(0, 10))
-        .orderBy("time", descending: true)
-        .startAfterDocument(documentList[documentList.length - 1])
-        .limit(10)
+        .where("barcode", isGreaterThanOrEqualTo: sSeachName)
+        .where("barcode", isLessThan: sSeachName + 'z')
         .getDocuments()
         .then((value) {
       int iRet = value.documents.length;
@@ -202,7 +207,77 @@ class _AddProductScreenState extends State<AddProductScreen> {
         String sUsername = element.data['username'];
         String sDocID = element.documentID;
         DateTime dtDocDate = DateTime.parse(sDate);
-        DateTime dtDocTime = DateTime.parse(sTime);
+        String sThaiMonth =
+//            dtDocDate.day.toString() +
+//            ' ' +
+//            getMonthName(dtDocDate.month) +
+//            ' ' +
+//            dtDocDate.year.toString() +
+//            ' ' +
+            sTime;
+        String dateFormat = datetimeFormat.format(DateTime(dtDocDate.year,
+            dtDocDate.month, dtDocDate.day, dtDocDate.hour, dtDocDate.minute));
+        Image itemImage = ImagesConverter.imageFromBase64String(sImg64);
+        if (sBarcode == null) sBarcode = '';
+        if (sThaiMonth == null) sThaiMonth = '';
+        if (sTime == null) sTime = '';
+        if (sCode == null) sCode = '';
+        if (sName == null) sName = '';
+        if (sGroup == null) sGroup = '';
+        if (sImg64 == null) sImg64 = '';
+        if (sUsername == null) sUsername = '';
+        mdProduct.add(ModelProduct(
+          sBarcode,
+          sDate: sThaiMonth,
+          sTime: sTime,
+          sCode: sCode,
+          sName: sName,
+          sGroup: sGroup,
+          sImg64: sImg64,
+          imageList: itemImage,
+          sUsername: sUsername,
+          sDocID: sDocID,
+        ));
+        documentList.add(element);
+      });
+      if (iRet == 0) {
+        mdProduct.clear();
+        sListData = "ไม่มีรายการ";
+        bNoMoreData = true;
+        setState(() {});
+      }
+      if (iRet > 0) {
+//        Navigator.pop(context);
+        setState(() {});
+      }
+    });
+  }
+
+  setDataListViewScrolling() async {
+    bNoMoreData = false;
+    int iRet = 0;
+    // สำหรับดึงข้อมูล firebase
+    await Firestore.instance
+        .collection("product")
+        .where("date", isEqualTo: dtStartDate.toString().substring(0, 10))
+        .orderBy("time", descending: true)
+        .startAfterDocument(documentList[documentList.length - 1])
+        .limit(10)
+        .getDocuments()
+        .then((value) {
+      iRet = value.documents.length;
+      value.documents.forEach((element) {
+        String sBarcode = element.data['barcode'];
+        String sDate = element.data['date'];
+        String sTime = element.data['time'];
+        String sCode = element.data['code'];
+        String sName = element.data['name'];
+        String sGroup = element.data['group'];
+        String sImg64 = element.data['image'];
+        String sUsername = element.data['username'];
+        String sDocID = element.documentID;
+        DateTime dtDocDate = DateTime.parse(sDate);
+//        DateTime dtDocTime = DateTime.parse(sTime);
         String sThaiMonth =
 //            dtDocDate.day.toString() +
 //            ' ' +
@@ -214,6 +289,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
         String dateFormat = datetimeFormat.format(DateTime(dtDocDate.year,
             dtDocDate.month, dtDocDate.day, dtDocDate.hour, dtDocDate.minute));
         Image itemImage = ImagesConverter.imageFromBase64String(sImg64);
+        if (sBarcode == null) sBarcode = '';
+        if (sThaiMonth == null) sThaiMonth = '';
+        if (sTime == null) sTime = '';
+        if (sCode == null) sCode = '';
+        if (sName == null) sName = '';
+        if (sGroup == null) sGroup = '';
+        if (sImg64 == null) sImg64 = '';
+        if (sUsername == null) sUsername = '';
         mdProduct.add(ModelProduct(
           sBarcode,
           sDate: sThaiMonth,
@@ -229,7 +312,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
         documentList.add(element);
       });
     });
-    if (mdProduct.length == 0) sListData = "ไม่มีรายการ";
+    if (iRet == 0) sListData = "ไม่มีรายการ";
+    if (iRet == 0) bNoMoreData = true;
     setState(() {});
   }
 
@@ -291,8 +375,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
   _imageTakePicture() async {
     var picture = await picker.getImage(
       source: ImageSource.camera,
-      maxHeight: 800,
-      maxWidth: 600,
       imageQuality: 100,
     );
     ImageResize.Image imageFile =
@@ -323,6 +405,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
       // User returned using the "back"-button before scanning anything.
     } catch (e) {
       // Unknown error.
+    }
+  }
+
+  searchData(String search) async {
+    await Future.delayed(Duration(milliseconds: 700));
+
+    String sSearchName = searchBar_controller.text;
+    if (search.length < 3) {
+      sSearchName = "";
+    }
+    if (search == sSearchName) {
+      getDataBySearch(sSearchName);
     }
   }
 
@@ -387,6 +481,59 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   children: <Widget>[
                     Text('ชื่อผู้ใช้งาน: ' + sUsername),
                     buildPickDate(),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          flex: 8,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(5),
+                              color: Colors.grey.shade100,
+                            ),
+                            alignment: Alignment.center,
+                            child: TextField(
+                              keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.search,
+                              onSubmitted: (term) {
+                                searchData(searchBar_controller.text);
+                              },
+                              autofocus: false,
+                              onChanged: searchData,
+                              controller: searchBar_controller,
+                              decoration: InputDecoration(
+                                hintText: 'คันหาด้วยบาร์โค้ด',
+                                prefixIcon: GestureDetector(
+                                  child: Icon(
+                                    Icons.search,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                  onTap: () {
+                                    searchData(searchBar_controller.text);
+                                  },
+                                ),
+                                hintStyle: TextStyle(
+                                    color: Colors.grey.shade700, fontSize: 13),
+                                border: InputBorder.none,
+                                suffixIcon: searchBar_controller.text.length > 0
+                                    ? IconButton(
+                                  icon: Icon(
+                                    Icons.close,
+                                    size: 15,
+                                    color: Colors.grey.shade500,
+                                  ),
+                                  onPressed: () {
+                                    searchBar_controller.clear();
+                                    setDataListViewFirstTime();
+                                    setState(() {});
+                                  },
+                                )
+                                    : null,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -405,7 +552,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
               final index = i;
 
               if (index >= documentList.length) {
-                waitProcess();
+                if (!bNoMoreData) {
+                  waitProcess();
+                }
               }
 
               if (mdProduct.length > 0 && index < mdProduct.length) {
@@ -429,10 +578,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget buildPickDate() {
     return Container(
       margin: EdgeInsets.only(top: 5),
-      color: Colors.white,
+      color: Colors.grey.shade200,
       child: Column(
         children: <Widget>[
-          SizedBox(height: 5,),
+          SizedBox(
+            height: 5,
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
