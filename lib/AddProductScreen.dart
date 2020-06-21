@@ -53,6 +53,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   TextEditingController searchBar_controller = TextEditingController();
   List<DocumentSnapshot> documentList = new List();
   bool bNoMoreData = false;
+  TextStyle _textStyleButton = TextStyle(color: Colors.white);
   String getMonthName(final int month) {
     switch (month) {
       case 1:
@@ -408,7 +409,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
       // Unknown error.
     }
   }
-
+  _onClickPushPage(){
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return ViewItemPage(sBarcode: sBarcode,);
+    },));
+  }
   searchData(String search) async {
     await Future.delayed(Duration(milliseconds: 700));
 
