@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:PTMRacing/AddProductScreen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
   runApp(MyApp());
@@ -14,6 +15,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',
+        localizationsDelegates: [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
         theme: ThemeData(
           // This is the theme of your application.
           //
@@ -65,6 +70,14 @@ class _HomePageState extends State<HomePage> {
                   Container(
                     child: Image.asset('assets/images/logo.png',filterQuality: FilterQuality.high,),
                   ),
+                  Row(mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      Container(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          child: Text("version 0.3 (beta)",
+                            style: TextStyle(fontSize: 10),)
+                      ),
+                    ],),
                   SizedBox(
                     height: 10,
                   ),

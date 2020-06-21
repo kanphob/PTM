@@ -15,6 +15,8 @@ import 'dart:io';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:intl/intl.dart';
 import 'package:PTMRacing/DataRepository.dart';
+import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:flutter_rounded_date_picker/rounded_date_picker.dart';
 
 class AddProductScreen extends StatefulWidget {
   String sUsername;
@@ -32,11 +34,21 @@ class _AddProductScreenState extends State<AddProductScreen> {
   String sBase64Img = '';
   final picker = ImagePicker();
   DateFormat datetimeFormat = DateFormat('dd-MM-yyyy HH:mm');
+  DateFormat dateFormat = DateFormat('dd-MM-yyyy');
   DateFormat timeFormat = DateFormat('HH:mm');
   DateTime currentDt = DateTime.now();
   DataRepository repository = DataRepository();
   String sFullDate = '';
   String sUsername = '';
+  String sListData = '';
+  TextEditingController dateStart_controller;
+  TextEditingController dateEnd_controller;
+  DateFormat savetimeFormat = DateFormat('yyyy-MM-ddTHH:mm:ss');
+  DateFormat savedateFormat = DateFormat('yyyy-MM-dd');
+  DateTime dtStartDate = DateTime.now();
+  DateTime dtEndDate = DateTime.now();
+  DateTime currentDateTime = DateTime.now();
+  DateTime currentDT = DateTime.now();
   List<DocumentSnapshot> documentList = new List();
   String getMonthName(final int month) {
     switch (month) {
@@ -86,7 +98,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
   @override
   void initState() {
     if (this.widget.sUsername != null) sUsername = this.widget.sUsername;
-
+    String sThaiMonth = dtStartDate.day.toString() +
+        ' ' +
+        getMonthName(dtStartDate.month) +
+        ' ' +
+        dtStartDate.year.toString();
+    dateStart_controller = TextEditingController(text: sThaiMonth);
     setDataListViewFirstTime();
     super.initState();
   }
@@ -99,17 +116,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   setDataListViewFirstTime() async {
-    documentList.clear();
     sFullDate = currentDt.day.toString() +
         " " +
         getMonthName(currentDt.month) +
         " " +
-        (currentDt.year + 543).toString();
+        (currentDt.year).toString();
     // สำหรับดึงข้อมูล firebase
     mdProduct.clear();
     await Firestore.instance
         .collection("product")
-        .orderBy("date", descending: true)
+        .where("date", isEqualTo: dtStartDate.toString().substring(0, 10))
+        .orderBy("time", descending: true)
         .limit(10)
         .getDocuments()
         .then((value) {
@@ -117,6 +134,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       value.documents.forEach((element) {
         String sBarcode = element.data['barcode'];
         String sDate = element.data['date'];
+        String sTime = element.data['time'];
         String sCode = element.data['code'];
         String sName = element.data['name'];
         String sGroup = element.data['group'];
@@ -124,15 +142,26 @@ class _AddProductScreenState extends State<AddProductScreen> {
         String sUsername = element.data['username'];
         String sDocID = element.documentID;
         DateTime dtDocDate = DateTime.parse(sDate);
-        String dateFormat = datetimeFormat.format(DateTime(dtDocDate.year + 543,
+        String sThaiMonth =
+//            dtDocDate.day.toString() +
+//            ' ' +
+//            getMonthName(dtDocDate.month) +
+//            ' ' +
+//            dtDocDate.year.toString() +
+//            ' ' +
+            sTime;
+        String dateFormat = datetimeFormat.format(DateTime(dtDocDate.year,
             dtDocDate.month, dtDocDate.day, dtDocDate.hour, dtDocDate.minute));
+        Image itemImage = ImagesConverter.imageFromBase64String(sImg64);
         mdProduct.add(ModelProduct(
           sBarcode,
-          sDate: dateFormat,
+          sDate: sThaiMonth,
+          sTime: sTime,
           sCode: sCode,
           sName: sName,
           sGroup: sGroup,
           sImg64: sImg64,
+          imageList: itemImage,
           sUsername: sUsername,
           sDocID: sDocID,
         ));
@@ -150,20 +179,22 @@ class _AddProductScreenState extends State<AddProductScreen> {
         " " +
         getMonthName(currentDt.month) +
         " " +
-        (currentDt.year + 543).toString();
+        (currentDt.year).toString();
+
     // สำหรับดึงข้อมูล firebase
-    mdProduct.clear();
     await Firestore.instance
         .collection("product")
-        .orderBy("date", descending: true)
+        .where("date", isEqualTo: dtStartDate.toString().substring(0, 10))
+        .orderBy("time", descending: true)
+        .startAfterDocument(documentList[documentList.length - 1])
         .limit(10)
-        .startAfterDocument(documentList[documentList.length])
         .getDocuments()
         .then((value) {
       int iRet = value.documents.length;
       value.documents.forEach((element) {
         String sBarcode = element.data['barcode'];
         String sDate = element.data['date'];
+        String sTime = element.data['time'];
         String sCode = element.data['code'];
         String sName = element.data['name'];
         String sGroup = element.data['group'];
@@ -171,24 +202,35 @@ class _AddProductScreenState extends State<AddProductScreen> {
         String sUsername = element.data['username'];
         String sDocID = element.documentID;
         DateTime dtDocDate = DateTime.parse(sDate);
-        String dateFormat = datetimeFormat.format(DateTime(dtDocDate.year + 543,
+        DateTime dtDocTime = DateTime.parse(sTime);
+        String sThaiMonth =
+//            dtDocDate.day.toString() +
+//            ' ' +
+//            getMonthName(dtDocDate.month) +
+//            ' ' +
+//            dtDocDate.year.toString() +
+//            ' ' +
+        sTime;
+        String dateFormat = datetimeFormat.format(DateTime(dtDocDate.year,
             dtDocDate.month, dtDocDate.day, dtDocDate.hour, dtDocDate.minute));
+        Image itemImage = ImagesConverter.imageFromBase64String(sImg64);
         mdProduct.add(ModelProduct(
           sBarcode,
-          sDate: dateFormat,
+          sDate: sThaiMonth,
+          sTime: sTime,
           sCode: sCode,
           sName: sName,
           sGroup: sGroup,
           sImg64: sImg64,
+          imageList: itemImage,
           sUsername: sUsername,
           sDocID: sDocID,
         ));
+        documentList.add(element);
       });
-      if (iRet > 0) {
-//        Navigator.pop(context);
-        setState(() {});
-      }
     });
+    if (mdProduct.length == 0) sListData = "ไม่มีรายการ";
+    setState(() {});
   }
 
   processCreateProduct() async {
@@ -200,17 +242,48 @@ class _AddProductScreenState extends State<AddProductScreen> {
       await scan();
 
       if (sBarcode != null && sBarcode != '') {
-        String sDate = currentDt.toString();
-
+        int iRet = 0;
+        await Firestore.instance
+            .collection("product")
+            .where("barcode", isEqualTo: sBarcode)
+            .getDocuments()
+            .then((value) {
+          iRet = value.documents.length;
+        });
+        if (iRet > 0) {
+          showDialog(
+              context: context,
+              builder: (_) {
+                return AlertDialog(
+                  title: Text("รหัสบาร์โค้ดซ้ำ..มีข้อมูลในระบบแล้ว"),
+                  actions: <Widget>[
+                    FlatButton.icon(
+                        onPressed: () => Navigator.pop(context),
+                        icon: Icon(
+                          Icons.close,
+                          color: Colors.grey,
+                        ),
+                        label: Text(
+                          "ปิด",
+                          style: TextStyle(color: Colors.grey),
+                        ))
+                  ],
+                );
+              });
+        } else {
+          String sDate = savedateFormat.format(DateTime.now());
+          String sTime = timeFormat.format(DateTime.now());
 //      mdProduct.add(ModelProduct(sBarcode,sDate: sDate,sCode: sBarcode,sName: 'ไม่ระบุ',sGroup: 'ไม่ระบุ',sImg64: sBase64Img));
-        await repository.addProduct(ModelProduct(sBarcode,
-            sDate: sDate,
-            sCode: sBarcode,
-            sName: 'ไม่ระบุ',
-            sGroup: 'ไม่ระบุ',
-            sImg64: sBase64Img,
-            sUsername: sUsername));
-        setDataListViewFirstTime();
+          await repository.addProduct(ModelProduct(sBarcode,
+              sDate: sDate,
+              sTime: sTime,
+              sCode: sBarcode,
+              sName: 'ไม่ระบุ',
+              sGroup: 'ไม่ระบุ',
+              sImg64: sBase64Img,
+              sUsername: sUsername));
+          setDataListViewFirstTime();
+        }
       }
     }
   }
@@ -220,7 +293,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       source: ImageSource.camera,
       maxHeight: 800,
       maxWidth: 600,
-      imageQuality: 95,
+      imageQuality: 100,
     );
     ImageResize.Image imageFile =
         ImageResize.decodeJpg(File(picture.path).readAsBytesSync());
@@ -259,36 +332,36 @@ class _AddProductScreenState extends State<AddProductScreen> {
       appBar: AppBar(
           title: GestureDetector(
             child: Text("รายการสินค้า"),
-            onTap: () {},
+            onTap: () {
+              print(dtStartDate.toString().substring(0, 10));
+            },
           )),
-      body: SingleChildScrollView(
-        physics: BouncingScrollPhysics(),
-        child: Container(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(color: Colors.grey.shade200),
-                      padding: EdgeInsets.all(5),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text('วันที่: ' + sFullDate),
-                          Text('ชื่อผู้ใช้งาน: ' + sUsername),
-                        ],
-                      ),
-                    ),
-                  )
-                ],
-              ),
-              _buildSuggestions(),
-            ],
-          ),
-        ),
+      body: Container(
+        child:
+//          child: Column(
+//            mainAxisAlignment: MainAxisAlignment.start,
+//            children: <Widget>[
+//              Row(
+//                mainAxisAlignment: MainAxisAlignment.start,
+//                children: <Widget>[
+//                  Expanded(
+//                    child: Container(
+//                      decoration: BoxDecoration(color: Colors.grey.shade200),
+//                      padding: EdgeInsets.all(5),
+//                      child: Column(
+//                        crossAxisAlignment: CrossAxisAlignment.start,
+//                        children: <Widget>[
+//                          Text('วันที่: ' + sFullDate),
+//                          Text('ชื่อผู้ใช้งาน: ' + sUsername),
+//                        ],
+//                      ),
+//                    ),
+//                  )
+//                ],
+//              ),
+        _buildSuggestions(),
+//            ],
+//          ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => processCreateProduct(),
@@ -299,30 +372,168 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   Widget _buildSuggestions() {
-    return mdProduct.length > 0
-        ? new GridView.builder(
-      physics: BouncingScrollPhysics(),
-      itemCount: mdProduct.length,
-      shrinkWrap: true,
-      gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2),
-      itemBuilder: (context, i) {
-        final index = i;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(color: Colors.grey.shade200),
+                padding: EdgeInsets.all(5),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text('ชื่อผู้ใช้งาน: ' + sUsername),
+                    buildPickDate(),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        mdProduct.length > 0
+            ? Expanded(
+          child: new GridView.builder(
+            physics: BouncingScrollPhysics(),
+            itemCount: mdProduct.length + 1,
+            shrinkWrap: true,
+            gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2),
+            itemBuilder: (context, i) {
+              final index = i;
 
-        if (index >= documentList.length) {
-          setDataListViewScrolling();
-        }
+              if (index >= documentList.length) {
+                waitProcess();
+              }
 
+              if (mdProduct.length > 0 && index < mdProduct.length) {
+                return _buildRow(mdProduct[index], index);
+              }
+            },
+          ),
+        )
+            : Expanded(
+          child: Center(
+            child: Text(
+              sListData,
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        )
+      ],
+    );
+  }
 
-        if (mdProduct.length > 0 && index < mdProduct.length) {
-          return _buildRow(mdProduct[index], index);
-        }
-      },
-    )
-        : Center(
-      child: Text(
-        "ไม่มีรายการ",
-        style: TextStyle(fontWeight: FontWeight.w700),
+  Widget buildPickDate() {
+    return Container(
+      margin: EdgeInsets.only(top: 5),
+      color: Colors.white,
+      child: Column(
+        children: <Widget>[
+          SizedBox(height: 5,),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              GestureDetector(
+                child: Text(
+                  'เลือกวันที่',
+                  style: TextStyle(fontSize: 15, color: Colors.grey),
+                ),
+                onTap: () {},
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Expanded(
+                flex: 1,
+                child: Container(),
+              ),
+              Expanded(
+                flex: 5,
+                child: DateTimeField(
+                  readOnly: true,
+                  resetIcon: null,
+                  textAlign: TextAlign.center,
+                  controller: dateStart_controller,
+                  format: dateFormat,
+                  style: TextStyle(color: Colors.blue, height: 1.4),
+                  onShowPicker: (context, currentValue) async {
+                    dtStartDate = DateTime(
+                        dtStartDate.year,
+                        dtStartDate.month,
+                        dtStartDate.day,
+                        dtStartDate.hour,
+                        dtStartDate.minute,
+                        dtStartDate.second);
+                    final date = await RoundedDatePicker.show(
+                      context,
+                      theme: ThemeData(primarySwatch: Colors.red),
+                      initialDate: DateTime(
+                          dtStartDate.year, dtStartDate.month, dtStartDate.day),
+                      locale: Locale("th", "TH"),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2100),
+                    );
+                    if (date != null) {
+                      dtStartDate = date;
+                      String sThaiMonth = dtStartDate.day.toString() +
+                          ' ' +
+                          getMonthName(dtStartDate.month) +
+                          ' ' +
+                          dtStartDate.year.toString();
+                      dateStart_controller =
+                          TextEditingController(text: sThaiMonth);
+                      setDataListViewFirstTime();
+                      setState(() {});
+
+                      return DateTime(
+                        date.year,
+                        date.month,
+                        date.day,
+                      );
+                    } else {
+                      String sThaiMonth = dtStartDate.day.toString() +
+                          ' ' +
+                          getMonthName(dtStartDate.month) +
+                          ' ' +
+                          dtStartDate.year.toString();
+                      dateStart_controller =
+                          TextEditingController(text: sThaiMonth);
+//                              return DateTime(
+//                                  dtStartDate.year,
+//                                  dtStartDate.month,
+//                                  dtStartDate.day,
+//                                  dtStartDate.hour,
+//                                  dtStartDate.minute);
+                      return null;
+                    }
+                  },
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    prefixIcon: Icon(
+                      Icons.calendar_today,
+                      color: Colors.blue,
+                      size: 15,
+                    ),
+                    suffixIcon: Icon(
+                      Icons.keyboard_arrow_down,
+                      color: Colors.blue,
+                      size: 15,
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: Container(),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -353,9 +564,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                   borderRadius: BorderRadius.only(
                                       topLeft: Radius.circular(5),
                                       topRight: Radius.circular(5)),
-                                  child:
-                                  ImagesConverter.imageFromBase64String(
-                                      pair.sImg64)),
+                                  child: pair.imageList),
                             ),
                             tag: pair.sImg64,
                           ),
@@ -373,13 +582,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                         child: new InkWell(
                                           child: new Hero(
                                             child: ClipRRect(
-                                                borderRadius:
-                                                BorderRadius.only(
-                                                    topLeft: Radius
-                                                        .circular(5),
+                                                borderRadius: BorderRadius.only(
+                                                    topLeft: Radius.circular(5),
                                                     topRight:
-                                                    Radius.circular(
-                                                        5)),
+                                                    Radius.circular(5)),
                                                 child: ImagesConverter
                                                     .imageFromBase64String(
                                                     pair.sImg64,
@@ -413,14 +619,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                   title: Text("ต้องการลบรายการนี้หรือไม่?"),
                                   actions: <Widget>[
                                     FlatButton.icon(
-                                        onPressed: () =>
-                                            Navigator.pop(context),
+                                        onPressed: () => Navigator.pop(context),
                                         icon: Icon(Icons.close,
                                             color: Colors.grey),
                                         label: Text(
                                           "ยกเลิก",
-                                          style:
-                                          TextStyle(color: Colors.grey),
+                                          style: TextStyle(color: Colors.grey),
                                         )),
                                     FlatButton.icon(
                                         onPressed: () async {
@@ -457,8 +661,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
               padding: EdgeInsets.only(left: 5),
               child: new Row(
                 children: <Widget>[
+                  Icon(
+                    Icons.access_time,
+                    size: 15,
+                  ),
+                  SizedBox(
+                    width: 5,
+                  ),
                   Text(
-                    pair.sDate,
+                    pair.sDate + ' น.',
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 12),
                   ),

@@ -1,6 +1,6 @@
 {
-    "name": "flutterptm",
-    "short_name": "flutterptm",
+  "name": "PTMRacing",
+  "short_name": "PTMRacing",
     "start_url": ".",
     "display": "minimal-ui",
     "background_color": "#0175C2",

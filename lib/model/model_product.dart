@@ -1,23 +1,28 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 
 class ModelProduct {
   String sName;
   String sDate;
+  String sTime;
   String sCode;
   String sBarcode;
   String sGroup;
   String sImg64;
+  Image imageList;
   String sUsername;
   String sDocID;
   DocumentReference reference;
 
   ModelProduct(this.sBarcode,
       {this.sDate,
+      this.sTime,
       this.sCode,
       this.sName,
       this.sGroup,
       this.sImg64,
-      this.sUsername,
+        this.imageList,
+        this.sUsername,
       this.sDocID,
       this.reference});
 
@@ -60,6 +65,7 @@ ModelProduct _ModelProductFromJson(Map<dynamic, dynamic> json) {
   return ModelProduct(
     json['barcode'] as String,
     sDate: json['date'] as String,
+    sTime: json['time'] as String,
     sCode: json['code'] as String,
     sName: json['name'] as String,
     sGroup: json['group'] as String,
@@ -74,6 +80,7 @@ Map<String, dynamic> _ModelProductToJson(ModelProduct instance) =>
     <String, dynamic>{
       'barcode': instance.sBarcode,
       'date': instance.sDate,
+      'time': instance.sTime,
       'code': instance.sCode,
       'name': instance.sName,
       'group': instance.sGroup,

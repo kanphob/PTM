@@ -19,7 +19,7 @@ class ImagesConverter {
           imgs = Image.memory(
             base64Decode(base64String),
             fit: bTapView ? BoxFit.contain : BoxFit.cover,
-            filterQuality: FilterQuality.medium,
+            filterQuality: bTapView ? FilterQuality.high : FilterQuality.low,
           );
         } else {
           imgs = Image.asset(
