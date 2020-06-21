@@ -297,7 +297,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
     ImageResize.Image imageFile =
         ImageResize.decodeJpg(File(picture.path).readAsBytesSync());
-    ImageResize.Image thumbnail = ImageResize.copyResize(imageFile, width: 300);
+    ImageResize.Image thumbnail = ImageResize.copyResize(imageFile, width: 550);
     sBase64Img = base64Encode(ImageResize.encodePng(thumbnail));
 //    imageProduct = ImagesConverter.imageFromBase64String(sBase64Img);
     setState(() {});
