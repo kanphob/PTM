@@ -1,4 +1,3 @@
-import 'package:PTMRacing/AddProductScreenTest.dart';
 import 'package:PTMRacing/Constant/_gb.dart';
 import 'package:PTMRacing/ViewItem_Page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -21,16 +20,16 @@ import 'package:PTMRacing/DataRepository.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter_rounded_date_picker/rounded_date_picker.dart';
 
-class AddProductScreen extends StatefulWidget {
+class AddProductScreenTest extends StatefulWidget {
   String sUsername;
 
-  AddProductScreen({Key key, this.sUsername}) : super(key: key);
+  AddProductScreenTest({Key key, this.sUsername}) : super(key: key);
 
   @override
-  _AddProductScreenState createState() => _AddProductScreenState();
+  _AddProductScreenTestState createState() => _AddProductScreenTestState();
 }
 
-class _AddProductScreenState extends State<AddProductScreen> {
+class _AddProductScreenTestState extends State<AddProductScreenTest> {
   int _counter = 0;
   List<ModelProduct> mdProduct = new List();
   String sBarcode = '';
@@ -56,7 +55,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
   List<DocumentSnapshot> documentList = new List();
   FocusNode focusSearch = FocusNode();
   Firestore firebaseStore = Firestore.instance;
-  bool isDownloading = false;
   bool bNoMoreData = false;
   TextStyle _textStyleButton = TextStyle(color: Colors.blue, fontSize: 12);
 
@@ -127,12 +125,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
   deleteFromDB(String sDocID) async {
     await Firestore.instance.collection("product").document(sDocID).delete();
     Navigator.pop(context, 'deleted');
-    await setDataListViewFilterDate();
+    await setDataListViewFirstTime();
     setState(() {});
   }
 
   setDataListViewFirstTime() async {
-    isDownloading = true;
     sFullDate = currentDt.day.toString() +
         " " +
         getMonthName(currentDt.month) +
@@ -143,10 +140,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     documentList.clear();
 
     int iRet = Globals.querySnapshot.length;
-    Globals.querySnapshot
-        .where((element) =>
-            element.data['date'] == dtStartDate.toString().substring(0, 10))
-        .forEach((element) {
+    Globals.querySnapshot.forEach((element) {
       String sBarcode = element.data['barcode'];
       String sDate = element.data['date'];
       String sTime = element.data['time'];
@@ -190,106 +184,25 @@ class _AddProductScreenState extends State<AddProductScreen> {
       ));
       documentList.add(element);
     });
-    if (iRet == 0) {
-      isDownloading = false;
-      sListData = "ไม่มีรายการ";
-      bNoMoreData = true;
-      setState(() {});
-    }
-    if (iRet > 0) {
-      isDownloading = false;
-//        Navigator.pop(context);
-      setState(() {});
-    }
-  }
-
-  setDataListViewFilterDate() async {
-    isDownloading = true;
-    sFullDate = currentDt.day.toString() +
-        " " +
-        getMonthName(currentDt.month) +
-        " " +
-        (currentDt.year).toString();
-    // สำหรับดึงข้อมูล firebase
-    mdProduct.clear();
-    documentList.clear();
-    int iRet = 0;
-    firebaseStore
-        .collection("product")
-        .where("date", isEqualTo: dtStartDate.toString().substring(0, 10))
-        .orderBy("time", descending: true)
-        .limit(8)
-        .getDocuments()
-        .then((value) {
-      iRet = value.documents.length;
-      value.documents.forEach((element) {
-        String sBarcode = element.data['barcode'];
-        String sDate = element.data['date'];
-        String sTime = element.data['time'];
-        String sCode = element.data['code'];
-        String sName = element.data['name'];
-        String sGroup = element.data['group'];
-        String sImg64 = element.data['image'];
-        String sUsername = element.data['username'];
-        String sDocID = element.documentID;
-        DateTime dtDocDate = DateTime.parse(sDate);
-        String sThaiMonth =
-//            dtDocDate.day.toString() +
-//            ' ' +
-//            getMonthName(dtDocDate.month) +
-//            ' ' +
-//            dtDocDate.year.toString() +
-//            ' ' +
-        sTime;
-        String dateFormat = datetimeFormat.format(DateTime(dtDocDate.year,
-            dtDocDate.month, dtDocDate.day, dtDocDate.hour, dtDocDate.minute));
-        Image itemImage = ImagesConverter.imageFromBase64String(sImg64);
-        if (sBarcode == null) sBarcode = '';
-        if (sThaiMonth == null) sThaiMonth = '';
-        if (sTime == null) sTime = '';
-        if (sCode == null) sCode = '';
-        if (sName == null) sName = '';
-        if (sGroup == null) sGroup = '';
-        if (sImg64 == null) sImg64 = '';
-        if (sUsername == null) sUsername = '';
-        mdProduct.add(ModelProduct(
-          sBarcode,
-          sDate: sThaiMonth,
-          sTime: sTime,
-          sCode: sCode,
-          sName: sName,
-          sGroup: sGroup,
-          sImg64: sImg64,
-          imageList: itemImage,
-          sUsername: sUsername,
-          sDocID: sDocID,
-        ));
-        documentList.add(element);
-      });
-      isDownloading = false;
-      setState(() {});
-    });
-
     if (mdProduct.length == 0) {
       sListData = "ไม่มีรายการ";
       bNoMoreData = true;
       setState(() {});
     }
     if (iRet > 0) {
-      isDownloading = false;
 //        Navigator.pop(context);
       setState(() {});
     }
   }
 
   getDataBySearch(String sSeachName) async {
-    isDownloading = true;
     // สำหรับดึงข้อมูล firebase
     mdProduct.clear();
     await firebaseStore
         .collection("product")
         .where("barcode", isGreaterThanOrEqualTo: sSeachName)
         .where("barcode", isLessThan: sSeachName + 'z')
+        .where("date", isEqualTo: '2020-06-99')
         .getDocuments()
         .then((value) {
       int iRet = value.documents.length;
@@ -311,7 +224,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 //            ' ' +
 //            dtDocDate.year.toString() +
 //            ' ' +
-        sTime;
+            sTime;
         String dateFormat = datetimeFormat.format(DateTime(dtDocDate.year,
             dtDocDate.month, dtDocDate.day, dtDocDate.hour, dtDocDate.minute));
         Image itemImage = ImagesConverter.imageFromBase64String(sImg64);
@@ -343,19 +256,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
         bNoMoreData = true;
       }
 //        Navigator.pop(context);
-      if (mdProduct.length > 0) {
-        isDownloading = true;
-        setState(() {});
-      }
+      if (mdProduct.length > 0) setState(() {});
     });
   }
 
   setDataListViewScrolling() async {
-    isDownloading = true;
     bNoMoreData = false;
     int iRet = 0;
     // สำหรับดึงข้อมูล firebase
-    String argDate = dtStartDate.toString().substring(0, 10);
+    String argDate = '2020-06-99';
     await firebaseStore
         .collection("product")
         .where("date", isEqualTo: argDate)
@@ -384,7 +293,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 //            ' ' +
 //            dtDocDate.year.toString() +
 //            ' ' +
-        sTime;
+            sTime;
         String dateFormat = datetimeFormat.format(DateTime(dtDocDate.year,
             dtDocDate.month, dtDocDate.day, dtDocDate.hour, dtDocDate.minute));
         Image itemImage = ImagesConverter.imageFromBase64String(sImg64);
@@ -410,15 +319,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
         ));
         documentList.add(element);
       });
-      isDownloading = false;
-      setState(() {});
     });
 
     if (mdProduct.length == 0) sListData = "ไม่มีรายการ";
-    if (iRet > 0) {
-      isDownloading = false;
-      setState(() {});
-    }
+    if (iRet > 0) setState(() {});
   }
 
   processCreateProduct() async {
@@ -463,15 +367,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
           String sTime = timeFormat.format(DateTime.now());
 //      mdProduct.add(ModelProduct(sBarcode,sDate: sDate,sCode: sBarcode,sName: 'ไม่ระบุ',sGroup: 'ไม่ระบุ',sImg64: sBase64Img));
           await repository.addProduct(ModelProduct(sBarcode,
-              sDate: sDate,
+              sDate: '2020-06-99',
               sTime: sTime,
               sCode: sBarcode,
-              sDocID: sBarcode,
               sName: 'ไม่ระบุ',
               sGroup: 'ไม่ระบุ',
               sImg64: sBase64Img,
               sUsername: sUsername));
-          setDataListViewFilterDate();
+          setDataListViewFirstTime();
         }
       }
     }
@@ -480,11 +383,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
   _imageTakePicture() async {
     var picture = await picker.getImage(
         source: ImageSource.camera,
-        imageQuality: 100,
+        imageQuality: 95,
         maxHeight: 800,
         maxWidth: 600);
     ImageResize.Image imageFile =
-    ImageResize.decodeJpg(File(picture.path).readAsBytesSync());
+        ImageResize.decodeJpg(File(picture.path).readAsBytesSync());
     ImageResize.Image thumbnail = ImageResize.copyResize(imageFile, width: 520);
     sBase64Img = base64Encode(ImageResize.encodePng(thumbnail));
 //    imageProduct = ImagesConverter.imageFromBase64String(sBase64Img);
@@ -544,73 +447,54 @@ class _AddProductScreenState extends State<AddProductScreen> {
 //      WillPopScope(
 //      onWillPop: () async => false,
 //      child:
-      Scaffold(
-        appBar: _buildAppBar(),
-        body: Container(
-          child:
-          //          child: Column(
-          //            mainAxisAlignment: MainAxisAlignment.start,
-          //            children: <Widget>[
-          //              Row(
-          //                mainAxisAlignment: MainAxisAlignment.start,
-          //                children: <Widget>[
-          //                  Expanded(
-          //                    child: Container(
-          //                      decoration: BoxDecoration(color: Colors.grey.shade200),
-          //                      padding: EdgeInsets.all(5),
-          //                      child: Column(
-          //                        crossAxisAlignment: CrossAxisAlignment.start,
-          //                        children: <Widget>[
-          //                          Text('วันที่: ' + sFullDate),
-          //                          Text('ชื่อผู้ใช้งาน: ' + sUsername),
-          //                        ],
-          //                      ),
-          //                    ),
-          //                  )
-          //                ],
-          //              ),
-          _buildSuggestions(),
-          //            ],
-          //          ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => processCreateProduct(),
-          tooltip: 'Scan',
-          child: Icon(Icons.add),
-        ),
+        Scaffold(
+      appBar: _buildAppBar(),
+      body: Container(
+        child:
+            //          child: Column(
+            //            mainAxisAlignment: MainAxisAlignment.start,
+            //            children: <Widget>[
+            //              Row(
+            //                mainAxisAlignment: MainAxisAlignment.start,
+            //                children: <Widget>[
+            //                  Expanded(
+            //                    child: Container(
+            //                      decoration: BoxDecoration(color: Colors.grey.shade200),
+            //                      padding: EdgeInsets.all(5),
+            //                      child: Column(
+            //                        crossAxisAlignment: CrossAxisAlignment.start,
+            //                        children: <Widget>[
+            //                          Text('วันที่: ' + sFullDate),
+            //                          Text('ชื่อผู้ใช้งาน: ' + sUsername),
+            //                        ],
+            //                      ),
+            //                    ),
+            //                  )
+            //                ],
+            //              ),
+            _buildSuggestions(),
+        //            ],
+        //          ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => processCreateProduct(),
+        tooltip: 'Scan',
+        child: Icon(Icons.add),
+      ),
 //      ),
-      );
+    );
   }
 
   Widget _buildAppBar() {
     return AppBar(
 //        automaticallyImplyLeading: false,
-      centerTitle: true,
-      title: GestureDetector(
-        child: Text("รายการสินค้า"),
-        onTap: () {
-          print(Globals.querySnapshot.length);
-          print(mdProduct.length);
-        },
-      ),
-//      actions: <Widget>[
-//        FlatButton.icon(
-//            onPressed: () => Navigator.push(
-//                context,
-//                MaterialPageRoute(
-//                    builder: (context) => AddProductScreenTest())),
-//            icon: Icon(
-//              Icons.image,
-//              color: Colors.white,
-//            ),
-//            label: Text(
-//              "test",
-//              style: TextStyle(
-//                color: Colors.white,
-//              ),
-//            ))
-//      ],
-    );
+        centerTitle: true,
+        title: GestureDetector(
+          child: Text("หน้าทดสอบ"),
+          onTap: () {
+            print(dtStartDate.toString().substring(0, 10));
+          },
+        ));
   }
 
   Widget _buildSuggestions() {
@@ -656,7 +540,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         )
                       ],
                     ),
-                    buildPickDate(),
+//                    buildPickDate(),
                     Row(
                       children: <Widget>[
                         Expanded(
@@ -693,17 +577,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                 border: InputBorder.none,
                                 suffixIcon: searchBar_controller.text.length > 0
                                     ? IconButton(
-                                  icon: Icon(
-                                    Icons.close,
-                                    size: 15,
-                                    color: Colors.grey.shade500,
-                                  ),
-                                  onPressed: () {
-                                    searchBar_controller.clear();
-                                    setDataListViewFirstTime();
-                                    setState(() {});
-                                  },
-                                )
+                                        icon: Icon(
+                                          Icons.close,
+                                          size: 15,
+                                          color: Colors.grey.shade500,
+                                        ),
+                                        onPressed: () {
+                                          searchBar_controller.clear();
+                                          setDataListViewFirstTime();
+                                          setState(() {});
+                                        },
+                                      )
                                     : null,
                               ),
                             ),
@@ -719,73 +603,35 @@ class _AddProductScreenState extends State<AddProductScreen> {
         ),
         mdProduct.length > 0
             ? Expanded(
-            child: new CustomScrollView(
-                shrinkWrap: true,
-                physics: BouncingScrollPhysics(),
-                slivers: <Widget>[
-                  new SliverGrid(
-                      gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2),
-                      delegate: SliverChildBuilderDelegate((context, i) {
-                        final index = i;
+                child: GridView.builder(
+                  physics: BouncingScrollPhysics(),
+                  itemCount: mdProduct.length + 1,
+                  shrinkWrap: true,
+                  gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2),
+                  itemBuilder: (context, i) {
+                    final index = i;
 
-                        if (index >= mdProduct.length) {
+                    if (index >= mdProduct.length) {
 //                      if (!bNoMoreData) {
-                          isDownloading = true;
-                          waitProcess();
-
+                      waitProcess();
 //                      }
-                        }
+                    }
 
-                        if (mdProduct.length > 0 && index < mdProduct.length) {
-                          return _buildRow(mdProduct[index], index);
-                        }
-                      },
-                        childCount: mdProduct.length + 1,
-                      )),
-                  new SliverToBoxAdapter(
-                      child: mdProduct.length >= 8 ? Container(
-                        margin: EdgeInsets.all(10),
-                        child: Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      ) : Container()
+                    if (mdProduct.length > 0 && index < mdProduct.length) {
+                      return _buildRow(mdProduct[index], index);
+                    }
+                  },
+                ),
+              )
+            : Expanded(
+                child: Center(
+                  child: Text(
+                    sListData,
+                    style: TextStyle(fontWeight: FontWeight.w700),
                   ),
-                ])
-//                GridView.builder(
-//                  physics: BouncingScrollPhysics(),
-//                  itemCount: mdProduct.length + 1,
-//                  shrinkWrap: true,
-//                  gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
-//                      crossAxisCount: 2),
-//                  itemBuilder: (context, i) {
-//                    final index = i;
-//
-//                    if (index >= mdProduct.length) {
-////                      if (!bNoMoreData) {
-//                      waitProcess();
-////                      }
-//                    }
-//
-//                    if (mdProduct.length > 0 && index < mdProduct.length) {
-//                      return _buildRow(mdProduct[index], index);
-//                    }
-//                  },
-//                ),
-        )
-            : isDownloading ? Container(
-          margin: EdgeInsets.all(10),
-          child: Center(
-            child: CircularProgressIndicator(),
-          ),
-        ) : Expanded(
-          child: Center(
-            child: Text(
-              sListData,
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-          ),
-        )
+                ),
+              )
       ],
     );
   }
@@ -851,7 +697,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           dtStartDate.year.toString();
                       dateStart_controller =
                           TextEditingController(text: sThaiMonth);
-                      setDataListViewFilterDate();
+                      setDataListViewFirstTime();
                       setState(() {});
 
                       return DateTime(
@@ -940,7 +786,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                     child: new Container(
                                       decoration: BoxDecoration(
                                           borderRadius:
-                                          BorderRadius.circular(5)),
+                                              BorderRadius.circular(5)),
 //                                    padding: const EdgeInsets.all(30.0),
                                       child: new InkWell(
                                         child: new Hero(
@@ -950,8 +796,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                                   topRight: Radius.circular(5)),
                                               child: ImagesConverter
                                                   .imageFromBase64String(
-                                                  pair.sImg64,
-                                                  bTapView: true)),
+                                                      pair.sImg64,
+                                                      bTapView: true)),
                                           tag: pair.sImg64,
                                         ),
                                         onTap: () {
@@ -985,7 +831,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                   FlatButton.icon(
                                       onPressed: () => Navigator.pop(context),
                                       icon:
-                                      Icon(Icons.close, color: Colors.grey),
+                                          Icon(Icons.close, color: Colors.grey),
                                       label: Text(
                                         "ยกเลิก",
                                         style: TextStyle(color: Colors.grey),
@@ -993,7 +839,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                   FlatButton.icon(
                                       onPressed: () async {
                                         String sResult =
-                                        await deleteFromDB(pair.sDocID);
+                                            await deleteFromDB(pair.sDocID);
                                       },
                                       icon: Icon(Icons.delete_forever,
                                           color: Colors.red),

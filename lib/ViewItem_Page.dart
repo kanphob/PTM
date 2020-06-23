@@ -26,12 +26,14 @@ class _ViewItemPageState extends State<ViewItemPage> {
   DateFormat dateFormat = DateFormat('dd-MM-yyyy');
   DateFormat timeFormat = DateFormat('HH:mm');
   Image image;
+  String sTitle = '';
   String sThaiMonths = '';
   String sTimes = '';
   String sCodes = '';
   String sNames = '';
   String sGroups = '';
   String sUserName = '';
+  String sImgBase64 = '';
   TextStyle _textStyleLabel = TextStyle(color: Colors.black,fontSize: 18);
   TextStyle _textStyleData = TextStyle(color: Colors.black,fontSize: 18,fontWeight: FontWeight.bold);
   TextStyle _textStyleAppBar = TextStyle(fontWeight: FontWeight.bold);
@@ -99,6 +101,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
       sNames = sName;
       sGroups = sGroup;
       sUserName = sUsername;
+      sImgBase64 = sImg64;
 //      mdProduct = ModelProduct(
 //        widget.sBarcode,
 //        sDate: sThaiMonth,
@@ -122,6 +125,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
   @override
   void initState() {
     _setDataListViewFirstTime();
+    sTitle = this.widget.sBarcode;
     image = ImagesConverter.imageFromBase64String(null);
     super.initState();
   }
@@ -152,15 +156,15 @@ class _ViewItemPageState extends State<ViewItemPage> {
               ],
             ),
           ),
-          floatingActionButton: _buildButtonEdit(),
-        ),
+//          floatingActionButton: _buildButtonEdit(),
+      ),
     );
   }
   Widget _buildAppBar(){
     return AppBar(
         centerTitle: true,
         elevation: 5,
-        title: Text("รายการสินค้า",
+      title: Text(sTitle,
         style: _textStyleAppBar,
         ),
     );
@@ -191,7 +195,10 @@ class _ViewItemPageState extends State<ViewItemPage> {
                     ),
                     child: new InkWell(
                       child: new Hero(
-                        child: image,
+                        child: ImagesConverter
+                            .imageFromBase64String(
+                            sImgBase64,
+                            bTapView: true),
                         tag: widget.sBarcode,
                       ),
                       onTap: () {
@@ -232,55 +239,6 @@ class _ViewItemPageState extends State<ViewItemPage> {
           ),
         ),
         Container(
-          color: Colors.white,
-          padding: EdgeInsets.only(top: 7,bottom: 7),
-          margin: EdgeInsets.only(bottom: 5),
-          child: Container(
-            margin: EdgeInsets.only(left: 15,right: 15),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                Expanded(
-                  child:
-                  RichText(
-                    overflow: TextOverflow.ellipsis,
-                    text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'ชื่อสินค้า : ',
-                            style: _textStyleLabel,
-                          ),
-                          TextSpan(
-                            text: sNames,
-                            style: _textStyleData,
-                          ),
-                        ]
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child:
-                  RichText(
-                    overflow: TextOverflow.ellipsis,
-                    text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'ชื่อผู้บันทึก : ',
-                            style: _textStyleLabel,
-                          ),
-                          TextSpan(
-                            text: sUserName,
-                            style: _textStyleData,
-                          ),
-                        ]
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        Container(
           color: Colors.grey[300],
           padding: EdgeInsets.only(top: 7,bottom: 7),
           margin: EdgeInsets.only(bottom: 5),
@@ -289,24 +247,24 @@ class _ViewItemPageState extends State<ViewItemPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
-                Expanded(
-                  child:
-                  RichText(
-                    overflow: TextOverflow.ellipsis,
-                    text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'ประเภทสินค้า : ',
-                            style: _textStyleLabel,
-                          ),
-                          TextSpan(
-                            text: sGroups,
-                            style: _textStyleData,
-                          ),
-                        ]
-                    ),
-                  ),
-                ),
+//                Expanded(
+//                  child:
+//                  RichText(
+//                    overflow: TextOverflow.ellipsis,
+//                    text: TextSpan(
+//                        children: [
+//                          TextSpan(
+//                            text: 'ประเภทสินค้า : ',
+//                            style: _textStyleLabel,
+//                          ),
+//                          TextSpan(
+//                            text: sGroups,
+//                            style: _textStyleData,
+//                          ),
+//                        ]
+//                    ),
+//                  ),
+//                ),
                 Expanded(
                   child:
                   RichText(
@@ -329,6 +287,56 @@ class _ViewItemPageState extends State<ViewItemPage> {
             ),
           ),
         ),
+        Container(
+          color: Colors.white,
+          padding: EdgeInsets.only(top: 7,bottom: 7),
+          margin: EdgeInsets.only(bottom: 5),
+          child: Container(
+            margin: EdgeInsets.only(left: 15,right: 15),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+//                Expanded(
+//                  child:
+//                  RichText(
+//                    overflow: TextOverflow.ellipsis,
+//                    text: TextSpan(
+//                        children: [
+//                          TextSpan(
+//                            text: 'ชื่อสินค้า : ',
+//                            style: _textStyleLabel,
+//                          ),
+//                          TextSpan(
+//                            text: sNames,
+//                            style: _textStyleData,
+//                          ),
+//                        ]
+//                    ),
+//                  ),
+//                ),
+                Expanded(
+                  child:
+                  RichText(
+                    overflow: TextOverflow.ellipsis,
+                    text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'ชื่อผู้บันทึก : ',
+                            style: _textStyleLabel,
+                          ),
+                          TextSpan(
+                            text: sUserName,
+                            style: _textStyleData,
+                          ),
+                        ]
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
 
       ],
     );
